@@ -1,0 +1,4 @@
+person:
+  name: Tek
+  surname: In
+  secrets: g::file://somedir/secrets.yaml

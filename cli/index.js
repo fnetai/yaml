@@ -1,17 +1,20 @@
 import Node from "../src";
-import setterTests from "./setter-tests";
-import getterTests from "./getter-tests";
+
+import setterTests from "./test/setter";
+import getterSelfTest from "./test/getter-self";
 
 export default async () => {
 
-    console.log(process.cwd());
-    
-    const currentTests = getterTests;
+    // const tests=[getterSelfTest[8]];
 
-    for (const test of currentTests) {
+    const tests = [...setterTests, ...getterSelfTest]
+
+    for (const test of tests) {
         console.log(`---- Running: ${test.description} ----`);
-        const result = await Node({ yamlContent: test.content });
-        console.log(result);
+        console.log(test.content);
+        const result = await Node({ content: test.content });
+        console.log('<->'); 
+        console.log(result.content);
         console.log('---------------------------------------');
     }
 }

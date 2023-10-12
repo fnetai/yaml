@@ -6,6 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import { URL } from 'url';
 
+import axios from 'axios';
+
 // Regex pattern to detect relative paths like "./" and "../"
 const relativePathPattern = /^(\.\/|(\.\.\/)+).*$/;
 
@@ -19,16 +21,47 @@ function isValidFileURL(fileURL) {
     }
 }
 
+function isValidHttpURL(httpURL) {
+    try {
+        const parsedUrl = new URL(httpURL);
+        return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+    } catch (error) {
+        return false;
+    }
+}
+
+async function fetchHttpContent(httpURL) {
+    try {
+        const response = await axios.get(httpURL);
+
+        try {
+            const parsed = yaml.load(response.data);
+            return {
+                parsed,
+            }
+        } catch (parseError) {
+            console.error(`Error parsing YAML from ${httpURL}:`, parseError);
+        }
+
+    } catch (networkError) {
+        console.error(`Error fetching content from ${httpURL}:`, networkError);
+    }
+}
+
 // Read the file content based on the filePath and current working directory (cwd)
 function readFileContent(filePath, cwd) {
     const absolutePath = path.resolve(cwd, filePath);
     if (fs.existsSync(absolutePath)) {
         const fileContent = fs.readFileSync(absolutePath, 'utf-8');
-        const parsed = yaml.load(fileContent);
-        return {
-            parsed,
-            resolvedPath: absolutePath,
-            resolvedDir: path.dirname(absolutePath)
+        try {
+            const parsed = yaml.load(fileContent);
+            return {
+                parsed,
+                resolvedPath: absolutePath,
+                resolvedDir: path.dirname(absolutePath)
+            }
+        } catch (parseError) {
+            console.error(`Error parsing YAML from file ${absolutePath}:`, parseError);
         }
     }
 }
@@ -41,7 +74,11 @@ function getRealPath(currentPath, relativePath) {
     for (let segment of combinedPath) {
         if (segment === "..") {
             realPath.pop(); // Move one level up
-        } else {
+        }
+        else if (segment === ".") {
+            // Do nothing
+        }
+        else {
             realPath.push(segment);
         }
     }
@@ -112,7 +149,18 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
                         await applySetter(obj[key]);
                         await applyGetter(obj[key], [], obj[key], resolvedDir);
                     }
-                } else {
+                }
+                else if (match.statement.startsWith('http') && isValidHttpURL(match.statement)) {
+                    const httpContentResult = await fetchHttpContent(match.statement);
+                    if (httpContentResult) {
+                        const { parsed: httpContentObj } = httpContentResult;
+
+                        obj[key] = httpContentObj;
+                        await applySetter(obj[key]);
+                        await applyGetter(obj[key], [], obj[key]);
+                    }
+                }
+                else {
                     let paths;
 
                     if (relativePathPattern.test(match.statement)) {
