@@ -201,11 +201,37 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
     }
 }
 
-// Main exported function that processes the YAML content
-export default async ({ content }) => {
-    const parsed = yaml.load(content);
+/**
+ * Processes the provided YAML content or file.
+ * @param {Object} args
+ * @param {string} [args.content] - The YAML content to be processed.
+ * @param {string} [args.file] - The path to the YAML file to be processed.
+ * @returns {Object} - Processed YAML content and its parsed representation.
+ */
+export default async ({ content, file, cwd = process.cwd() }) => {
+    let parsed;
+
+    // If file parameter is provided, read the file content
+    if (file) {
+        const absolutePath = path.resolve(cwd, file);
+        if (fs.existsSync(absolutePath)) {
+            content = fs.readFileSync(absolutePath, 'utf-8');
+            cwd = path.dirname(absolutePath); // Update cwd to the directory of the file
+        } else {
+            throw new Error(`File ${file} does not exist.`);
+        }
+    }
+
+    // Ensure that we have content to work on
+    if (!content) {
+        throw new Error("No content provided or file could not be read.");
+    }
+
+    parsed = yaml.load(content);
+
     await applySetter(parsed); // s:: processor
-    await applyGetter(parsed); // g:: processor
+    await applyGetter(parsed, [], parsed, cwd); // g:: processor
+
     return {
         content: yaml.dump(parsed),
         parsed

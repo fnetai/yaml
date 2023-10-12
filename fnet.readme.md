@@ -1,31 +1,19 @@
-# @fnet/yaml Project
+# @fnet/yaml Project Analysis
 
-**@fnet/yaml** is a JavaScript-based library for parsing, transforming, and manipulating YAML data. YAML (Yet Another Markup Language) is a human-readable data serialization language used in a wide range of applications for configuration files and data sharing between languages with different data structures.
+The '@fnet/yaml' project is a JavaScript program designed to **process and manipulate YAML** (Yet Another Markup Language) data. YAML is a human-readable data serialization language, and it's often used for writing configuration files. The '@fnet/yaml' project comes with functionality for **reading, interpreting, manipulating, and writing YAML data**. 
 
-The primary purpose of @fnet/yaml is to provide advance YAML manipulation capabilities. It allows users to read and interpret YAML content, apply transformations and fetch specific data from complex YAML-based data structures in an efficient manner.
+### Getter and Setter Functionalities in YAML Processing
 
-## Key Features 
+The vital features of '@fnet/yaml' code are the YAML *getter* and *setter* functionalities. Through these, the code enables users to **fetch and replace data values** within the YAML content.
 
-### Dynamic Data Reading 
+The **getter function ('g:: processor')** retrieves the values of specified fields from the YAML content. This functionality extends to support fetching values from fields with *relative paths* and embedding external content into the YAML data. The script can even extract information directly from URLs (including HTTP and file URLs) and embed it into the YAML data.
 
-The @fnet/yaml project reads and parses YAML content using the `js-yaml` module. It then evaluates, processes and rewrites the contents of the YAML file based on specific commands within the data itself.
+The **setter function ('s:: processor')** allows **modification of specified fields** within the existing YAML content. These changes can involve both individual elements and complex structures (arrays or objects). 
 
-### File Path Resolution
+### File and URL Handling
 
-The library can detect valid file URLs within the YAML file and resolve their absolute paths, even when the URLs are embedded deep within a file hierarchy. 
+Another key function of the '@fnet/yaml' project is its ability to **identify file paths and URLs**. It can interpret both *absolute and relative paths*, meaning it can correctly handle YAML content spread across different files or directories. The support for file and http URLs lets the program fetch external content, like downloading a YAML file from an HTTP server or reading a YAML file from a local directory.
 
-### Get and Set Operations
+### End User Perspective
 
-**@fnet/yaml** offers the flexibility to manipulate YAML objects through getter (g::) and setter (s::) operations where the getter operation fetches values while setter operation reassigns new value to the YAML data structure.
-
-### Value Expression Evaluation
-
-The '@fnet/expression' module is integrated within the project to parse and evaluate expressions in an advanced manner. It enables flexible key-value assignments, and performs almost any form of manipulations in the YAML data structures.
-
-### Developer-Friendly Design
-
-The use of modern JavaScript features like async/await and the modular structure of the code make @fnet/yaml easy to read and comprehend, enhancing the developer experience.
-
-## Significance
-
-@fnet/yaml serves as a great utility for developers and applications that engage extensively with YAML data. Whether it's for configuration management, data processing, or task automation involving YAML files, @fnet/yaml provides a streamlined, efficient tool for handling a wide range of operations and complexities. **Thus, the project has a significant impact on enhancing productivity and readability in YAML data processing tasks.**
+For end-users, the '@fnet/yaml' project is a powerful tool for working with YAML data in a flexible and efficient way. It allows them to read, modify, and generate YAML data dynamically. Its advanced getter and setter functionalities help users extract data from different sources or manipulate existing data. These features make '@fnet/yaml' an excellent tool for *generation of dynamic configuration files*, *data aggregation* or *pipeline-related tasks* in a programming environment.
