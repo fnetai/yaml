@@ -1,0 +1,5 @@
+main:
+  person:
+    name: tekin
+    age: 30
+    secrets: g::file://other/test2.yaml

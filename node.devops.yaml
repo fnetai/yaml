@@ -1,0 +1,6 @@
+targets:
+  - name: npm
+    enabled: true
+    params:
+      name: "@fnet/yaml"
+      version: 0.1.6

@@ -1,0 +1,13 @@
+name: yaml
+npm::name: "@fnet/yaml"
+
+#WAY 1
+# s::features.cli.extend: false
+# s::features.rollup.iife: false
+# s::features.app: false
+
+#WAY 2
+features:
+  app: false
+  s::cli.extend: false
+  s::rollup.iife: false
