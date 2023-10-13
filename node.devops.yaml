@@ -2,5 +2,6 @@ targets:
   - name: npm
     enabled: true
     params:
+      bin: fnet-yaml
       name: "@fnet/yaml"
-      version: 0.1.7
+      version: 0.1.8

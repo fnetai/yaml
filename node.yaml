@@ -11,6 +11,7 @@ inputs:
     description: |
       The YAML content to parse.
     alias: c
+    
   - name: file
     type: string
     description: |
