@@ -1,25 +1,22 @@
-# @fnet/yaml Project
+# @fnet/yaml
 
-The `@fnet/yaml` is a sophistical and robust YAML processing library. It provides extensive functionality to handle YAML files and content, enabling the users to parse, process, and manipulate YAML data more effectively.
+**@fnet/yaml** is a software package designed to process YAML content, either directly or from a file. The primary focus of the program is to enhance the YAML reading, writing, and manipulation processes.
 
-## Main Purposes
+## Key Functionalities
 
-1. **YAML Parsing and Dumping**: The library uses 'js-yaml' to convert YAML content into JavaScript objects and vice versa. This conversion empowers end-users to easily manage and manipulate data contained within YAML files.
+The key features of @fnet/yaml are broken down into several primary operations.
 
-2. **Content Reading & HTTP Fetching**: The library can read file content and fetch HTTP content. It can interpret absolute and relative paths, check for file existence, detect HTTP or file URLs, and fetch, parse and return YAML data from both file systems and URLs.
+1. **File Reading and Content Parsing**: It reads YAML content from text and file sources. It can read YAML data from explicit file paths as well as relative paths. The package uses the js-yaml library for interpreting YAML language, and it supports both local and online YAML content. It can accurately interpret the YAML content of files and URL returns from HTTP requests.
 
-3. **Setter and Getter Processing**: The `@fnet/yaml` library has the ability to process setters (s::) and getters (g::). Getters allow for retriving data from either a previously parsed YAML object or an external YAML (either local or at an HTTP endpoint). Similarly, setters enable assigning values to paths or indices in the YAML object structure in a flexible manner.
+2. **Content Processing**: The package takes the YAML content and processes it using two important methods, Setter and Getter (`s::` processor and `g::` processor):
 
-4. **Error Handling**: The library is robust, and adeptly handles possible errors by validating the existence of a file, URL validity, and the availability of content. It informs the user with descriptive error messages to guide troubleshooting and problem-solving.
+   - A setter (`s::`) updates values at specified paths in a YAML object hierarchy.
+   - A getter (`g::`) retrieves values at specified paths in a YAML object hierarchy. It supports getting values from files or HTTP sources, as well as other parts of the same YAML structure.
 
-## Significance
+3. **Error Handling**: The package robustly handles errors and exceptions in both reading files and parsing content. It will notify users of inaccessible files, issues in file content parsing, and issues in fetching content from HTTP URLs.
 
-1. **Enhanced Data Management**: With its YAML parsing and processing features, developers can better manage their YAML data, increasing code efficiency and productivity.
+4. **Content Dumping**: After processing, it dumps the final processed YAML content using the yaml.dump method.
 
-2. **Dynamic Data Integration**: The project's ability to fetch YAML data from the file system or HTTP URLs provides a versatile method to integrate different data sources during runtime.
+## Result
 
-3. **Advanced Data Manipulation**: With its robust setter and getter functionality, manipulating YAML objects is more straightforward and customizable.
-
-4. **Simplified Error Troubleshooting**: Its built-in error handling techniques and informative error messages significantly ease troubleshooting.
-
-5. **Versatility**: It can be used in a range of applications, such as configuration management, data serialization, or server scripting, contributing to its wide applicability.
+By effectively combining these functionalities, @fnet/yaml can seamlessly read, interpret, manipulate, and write YAML content. It thereby simplifies YAML data management for end-users, enhancing their work with YAML-formatted data and configuration files.
