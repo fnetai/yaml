@@ -1,4 +1,5 @@
-import yaml from 'js-yaml';
+import * as yaml from 'yaml';
+
 import expression from '@fnet/expression';
 import getValue from 'get-value';
 
@@ -35,7 +36,7 @@ async function fetchHttpContent(httpURL) {
         const response = await axios.get(httpURL);
 
         try {
-            const parsed = yaml.load(response.data);
+            const parsed = yaml.parse(response.data);
             return {
                 parsed,
             }
@@ -54,7 +55,7 @@ function readFileContent(filePath, cwd) {
     if (fs.existsSync(absolutePath)) {
         const fileContent = fs.readFileSync(absolutePath, 'utf-8');
         try {
-            const parsed = yaml.load(fileContent);
+            const parsed = yaml.parse(fileContent);
             return {
                 parsed,
                 resolvedPath: absolutePath,
@@ -227,13 +228,13 @@ export default async ({ content, file, cwd = process.cwd() }) => {
         throw new Error("No content provided or file could not be read.");
     }
 
-    parsed = yaml.load(content);
+    parsed = yaml.parse(content);
 
     await applySetter(parsed); // s:: processor
     await applyGetter(parsed, [], parsed, cwd); // g:: processor
 
     return {
-        content: yaml.dump(parsed),
+        content: yaml.stringify(parsed),
         parsed
     }
 };

@@ -3,7 +3,7 @@ npm::name: "@fnet/yaml"
 
 s::repo.url: https://gitlab.com/fnetai/yaml.git
 
-s::features.cli.extend: false
+# s::features.cli.extend: true
 s::features.rollup.iife: false
 s::features.app: false
 
