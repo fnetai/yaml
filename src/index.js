@@ -3,9 +3,9 @@ import * as yaml from 'yaml';
 import expression from '@fnet/expression';
 import getValue from 'get-value';
 
-import fs from 'fs';
-import path from 'path';
-import { URL } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { URL } from 'node:url';
 
 import axios from 'axios';
 
@@ -209,7 +209,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
  * @param {string} [args.file] - The path to the YAML file to be processed.
  * @returns {Object} - Processed YAML content and its parsed representation.
  */
-export default async ({ content, file, cwd = process.cwd() }) => {
+export default async ({ content, file, cwd = process.cwd() },context) => {
     let parsed;
 
     // If file parameter is provided, read the file content
