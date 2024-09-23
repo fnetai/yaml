@@ -1,12 +1,17 @@
 import Node from "../src";
 
-import setterTests from "./test/setter";
-import getterSelfTest from "./test/getter-self";
+// import setterTests from "./test/setter";
+// import getterSelfTest from "./test/getter-self";
 
-import path from "node:path";
+// import path from "node:path";
 
-export default async () => {
+export default async (args) => {
 
+  const result = await Node(args);
+
+  console.log(result);
+
+  return result;
   // const tests=[getterSelfTest[8]];
 
   // const tests = [...setterTests, ...getterSelfTest]
@@ -19,8 +24,8 @@ export default async () => {
   //     console.log(result.content);
   //     console.log('---------------------------------------');
   // }
-  
-  const file = path.resolve(process.cwd(), '../cli/test/files/data.yaml');
-  const result = await Node({ file });
-  console.log(result);
+
+  // const file = path.resolve(process.cwd(), '../cli/test/files/data.yaml');
+  // const result = await Node({ file });
+  // console.log(result);
 }
