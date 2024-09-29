@@ -1,12 +1,9 @@
 import * as yaml from 'yaml';
-
 import expression from '@fnet/expression';
 import getValue from 'get-value';
-
 import fs from 'node:fs';
 import path from 'node:path';
 import { URL } from 'node:url';
-
 import axios from 'axios';
 
 // Regex pattern to detect relative paths like "./" and "../"
@@ -34,16 +31,12 @@ function isValidHttpURL(httpURL) {
 async function fetchHttpContent(httpURL) {
   try {
     const response = await axios.get(httpURL);
-
     try {
       const parsed = yaml.parse(response.data);
-      return {
-        parsed,
-      }
+      return { parsed };
     } catch (parseError) {
       console.error(`Error parsing YAML from ${httpURL}:`, parseError);
     }
-
   } catch (networkError) {
     console.error(`Error fetching content from ${httpURL}:`, networkError);
   }
@@ -59,8 +52,8 @@ function readFileContent(filePath, cwd) {
       return {
         parsed,
         resolvedPath: absolutePath,
-        resolvedDir: path.dirname(absolutePath)
-      }
+        resolvedDir: path.dirname(absolutePath),
+      };
     } catch (parseError) {
       console.error(`Error parsing YAML from file ${absolutePath}:`, parseError);
     }
@@ -71,29 +64,46 @@ function readFileContent(filePath, cwd) {
 function getRealPath(currentPath, relativePath) {
   const combinedPath = [...currentPath, ...relativePath];
   const realPath = [];
-
   for (let segment of combinedPath) {
     if (segment === "..") {
       realPath.pop(); // Move one level up
-    }
-    else if (segment === ".") {
+    } else if (segment === ".") {
       // Do nothing
-    }
-    else {
+    } else {
       realPath.push(segment);
     }
   }
-
   return realPath;
 }
 
-// Process and apply setters in the given object
-async function applySetter(obj) {
+// Process and apply setters in the given object, with tag handling for processor 't'
+async function applySetter(obj, tags = []) {
   for (const [key, value] of Object.entries(obj)) {
     const match = await expression({ expression: key });
 
-    if (match && match.processor === 's') {
-      const path = match.statement.split('.').map(segment => {
+    if (match && match.processor === 't') {
+
+      if (!match.next) continue;
+
+      const tag = match.next;
+
+      // If the tag is not in the provided tags array, remove this entry
+      if (!tags.includes(tag.processor)) {
+        delete obj[key];
+        continue;
+      }
+
+      const subProcessor = tag.next; // Get the underlying processor (e.g., 's')
+
+      // Handle the underlying processor (assume it is 's' for setter)
+      if (subProcessor.processor === 's') {
+        delete obj[key]; // Remove the tag entry
+        obj[subProcessor.expression] = value; // Apply the setter
+
+        await applySetter(obj, tags); // Pass along the sub-processor
+      }
+    } else if (match && match.processor === 's') {
+      const path = match.statement.split('.').map((segment) => {
         const arrayIndexMatch = segment.match(/^\[(\d+)\]$/);
         if (arrayIndexMatch) {
           return parseInt(arrayIndexMatch[1], 10);
@@ -112,12 +122,12 @@ async function applySetter(obj) {
         } else {
           if (typeof path[i] === "number") {
             if (!currentObj[path[i]]) {
-              currentObj[path[i]] = (typeof path[i + 1] === "number") ? [] : {};
+              currentObj[path[i]] = Array.isArray(path[i + 1]) ? [] : {};
             }
             currentObj = currentObj[path[i]];
           } else {
             if (!currentObj[path[i]]) {
-              currentObj[path[i]] = (typeof path[i + 1] === "number") ? [] : {};
+              currentObj[path[i]] = Array.isArray(path[i + 1]) ? [] : {};
             }
             currentObj = currentObj[path[i]];
           }
@@ -126,7 +136,7 @@ async function applySetter(obj) {
 
       delete obj[key];
     } else if (typeof value === 'object' && value !== null) {
-      await applySetter(value);
+      await applySetter(value, tags);
     }
   }
 }
@@ -139,36 +149,30 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
 
       if (match && match.processor === 'g') {
         if (match.statement.startsWith('file://') && isValidFileURL(match.statement)) {
-
           const filePath = match.statement.replace('file://', '');
           const fileContentResult = readFileContent(filePath, cwd);
 
           if (fileContentResult) {
             const { parsed: fileContentObj, resolvedDir } = fileContentResult;
-
             obj[key] = fileContentObj;
             await applySetter(obj[key]);
             await applyGetter(obj[key], [], obj[key], resolvedDir);
           }
-        }
-        else if (match.statement.startsWith('http') && isValidHttpURL(match.statement)) {
+        } else if (match.statement.startsWith('http') && isValidHttpURL(match.statement)) {
           const httpContentResult = await fetchHttpContent(match.statement);
           if (httpContentResult) {
             const { parsed: httpContentObj } = httpContentResult;
-
             obj[key] = httpContentObj;
             await applySetter(obj[key]);
             await applyGetter(obj[key], [], obj[key]);
           }
-        }
-        else {
+        } else {
           let paths;
-
           if (relativePathPattern.test(match.statement)) {
             const relativeSegments = match.statement.split('/');
             paths = getRealPath(currentPath, relativeSegments);
           } else {
-            paths = match.statement.split('.').map(segment => {
+            paths = match.statement.split('.').map((segment) => {
               const arrayIndexMatch = segment.match(/^\[(\d+)\]$/);
               if (arrayIndexMatch) {
                 return parseInt(arrayIndexMatch[1], 10);
@@ -178,7 +182,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
           }
 
           const expandedPaths = paths.reduce((acc, cur) => {
-            cur.split('.').forEach(segment => {
+            cur.split('.').forEach((segment) => {
               const arrayIndexMatch = segment.match(/^\[(\d+)\]$/);
               if (arrayIndexMatch) {
                 acc.push(parseInt(arrayIndexMatch[1], 10));
@@ -190,7 +194,6 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
           }, []);
 
           const valueFromPath = getValue(root, expandedPaths);
-
           if (valueFromPath !== undefined) {
             obj[key] = valueFromPath;
           }
@@ -203,13 +206,14 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
 }
 
 /**
- * Processes the provided YAML content or file.
+ * Processes the provided YAML content or file with optional tag filtering.
  * @param {Object} args
  * @param {string} [args.content] - The YAML content to be processed.
  * @param {string} [args.file] - The path to the YAML file to be processed.
+ * @param {Array<string>} [args.tags] - Optional array of tags to filter by.
  * @returns {Object} - Processed YAML content and its parsed representation.
  */
-export default async ({ content, file, cwd = process.cwd() }, context) => {
+export default async ({ content, file, tags = [], cwd = process.cwd() }, context) => {
   let parsed;
 
   // If file parameter is provided, read the file content
@@ -230,12 +234,12 @@ export default async ({ content, file, cwd = process.cwd() }, context) => {
 
   parsed = yaml.parse(content);
 
-  await applySetter(parsed); // s:: processor
+  await applySetter(parsed, tags); // s:: processor with 't' tag support
   await applyGetter(parsed, [], parsed, cwd); // g:: processor
 
   return {
     raw: content,
     content: yaml.stringify(parsed),
-    parsed
-  }
+    parsed,
+  };
 };

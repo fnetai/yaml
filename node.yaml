@@ -3,9 +3,13 @@ npm::name: "@fnet/yaml"
 
 s::repo.url: git+https://gitlab.com/fnetai/yaml.git
 
-# s::features.cli.extend: true
-s::features.rollup.iife: false
+s::features.cli.extend: false
+s::features.iife: false
 s::features.app: false
+
+t::macos::s::abcdec: 1
+t::macos::s::abcde.aasasasas: 2
+t::linux::s::abcdess: 3
 
 inputs:
   - name: content
@@ -19,3 +23,10 @@ inputs:
     description: |
       The YAML file to parse.
     alias: f
+  - name: tags
+    type: array
+    description: |
+      The tag to parse.
+    alias:
+      - t
+      - tag
