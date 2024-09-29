@@ -23,10 +23,12 @@ inputs:
     description: |
       The YAML file to parse.
     alias: f
+
   - name: tags
     type: array
     description: |
-      The tag to parse.
+      An array of tags used for filtering YAML content. Only content marked with tags present in this array will be processed. 
+      If a tag is not found in the array, the corresponding YAML content will be excluded from the final output.
     alias:
       - t
       - tag
