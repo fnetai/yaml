@@ -96,11 +96,14 @@ async function applySetter(obj, tags = []) {
       const subProcessor = tag.next; // Get the underlying processor (e.g., 's')
 
       // Handle the underlying processor (assume it is 's' for setter)
-      if (subProcessor.processor === 's') {
+      if (subProcessor?.processor === 's') {
         delete obj[key]; // Remove the tag entry
         obj[subProcessor.expression] = value; // Apply the setter
-
         await applySetter(obj, tags); // Pass along the sub-processor
+      }
+      else{
+        delete obj[key]; // Remove the tag entry
+        obj[tag.statement] = value; // Apply the setter        
       }
     } else if (match && match.processor === 's') {
       const path = match.statement.split('.').map((segment) => {
@@ -142,7 +145,7 @@ async function applySetter(obj, tags = []) {
 }
 
 // Process and apply getters in the given object
-async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd()) {
+async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(), tags = []) {
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === "string") {
       const match = await expression({ expression: value });
@@ -155,16 +158,16 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
           if (fileContentResult) {
             const { parsed: fileContentObj, resolvedDir } = fileContentResult;
             obj[key] = fileContentObj;
-            await applySetter(obj[key]);
-            await applyGetter(obj[key], [], obj[key], resolvedDir);
+            await applySetter(obj[key], tags);
+            await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
           }
         } else if (match.statement.startsWith('http') && isValidHttpURL(match.statement)) {
           const httpContentResult = await fetchHttpContent(match.statement);
           if (httpContentResult) {
             const { parsed: httpContentObj } = httpContentResult;
             obj[key] = httpContentObj;
-            await applySetter(obj[key]);
-            await applyGetter(obj[key], [], obj[key]);
+            await applySetter(obj[key], tags);
+            await applyGetter(obj[key], [], obj[key], tags);
           }
         } else {
           let paths;
@@ -200,7 +203,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
         }
       }
     } else if (typeof value === 'object' && value !== null) {
-      await applyGetter(value, currentPath.concat([key]), root, cwd);
+      await applyGetter(value, currentPath.concat([key]), root, cwd, tags);
     }
   }
 }
@@ -235,7 +238,7 @@ export default async ({ content, file, tags = [], cwd = process.cwd() }, context
   parsed = yaml.parse(content);
 
   await applySetter(parsed, tags); // s:: processor with 't' tag support
-  await applyGetter(parsed, [], parsed, cwd); // g:: processor
+  await applyGetter(parsed, [], parsed, cwd, tags); // g:: processor
 
   return {
     raw: content,
