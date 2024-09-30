@@ -1,22 +1,38 @@
 # @fnet/yaml
 
-**@fnet/yaml** is a software package designed to process YAML content, either directly or from a file. The primary focus of the program is to enhance the YAML reading, writing, and manipulation processes.
+**@fnet/yaml** is a utility designed to process YAML content with advanced functionalities. From an end-user perspective, this tool offers the ability to not only parse YAML files but also dynamically modify and extend them with enhanced tag-driven features. Below is a detailed breakdown of its main purpose and functionality.
 
-## Key Functionalities
+### Main Purpose
+The primary purpose of @fnet/yaml is to **process and manage YAML files**. It is designed to support complex configurations and manipulations by enabling users to:
+- **Parse YAML content** from both local files and HTTP URLs.
+- **Apply dynamic modifications** (setters) to the YAML structure based on specific tags.
+- **Retrieve and insert content** (getters) from various sources into the YAML structure.
 
-The key features of @fnet/yaml are broken down into several primary operations.
+### Key Functionalities
 
-1. **File Reading and Content Parsing**: It reads YAML content from text and file sources. It can read YAML data from explicit file paths as well as relative paths. The package uses the js-yaml library for interpreting YAML language, and it supports both local and online YAML content. It can accurately interpret the YAML content of files and URL returns from HTTP requests.
+#### Reading and Parsing YAML Content
+The utility can handle YAML content:
+- **From local files**: It reads and parses the YAML content from any specified file path, ensuring that the file exists and is readable before proceeding.
+- **From HTTP URLs**: It fetches and parses YAML content from a given HTTP URL, making sure to handle network errors and parse errors gracefully.
 
-2. **Content Processing**: The package takes the YAML content and processes it using two important methods, Setter and Getter (`s::` processor and `g::` processor):
+#### Dynamic Modifications with Setters
+- **Setters** allow users to dynamically insert values into the YAML structure based on expressions and conditions. These modifications are facilitated through custom tags (`t::` for processing tags and `s::` for setting values).
+- **Tag Filtering**: Users can specify tags to filter which parts of the YAML should be processed, providing granular control over the modifications.
 
-   - A setter (`s::`) updates values at specified paths in a YAML object hierarchy.
-   - A getter (`g::`) retrieves values at specified paths in a YAML object hierarchy. It supports getting values from files or HTTP sources, as well as other parts of the same YAML structure.
+#### Content Retrieval with Getters
+- **Getters** fetch and insert content into the YAML from various sources. This includes:
+  - **Local file paths**: Allows incorporation of content from other YAML files.
+  - **HTTP URLs**: Inserts content retrieved from remote YAML files.
+  - **Relative paths and complex expressions**: Handles both relative and complex paths within the YAML structure to resolve values dynamically.
 
-3. **Error Handling**: The package robustly handles errors and exceptions in both reading files and parsing content. It will notify users of inaccessible files, issues in file content parsing, and issues in fetching content from HTTP URLs.
+### Error Handling
+@fnet/yaml ensures robust **error handling** by:
+- Validating URLs (both file and HTTP URLs) to ensure correctness.
+- Gracefully dealing with network and parse errors, logging meaningful messages to aid debugging and user awareness.
 
-4. **Content Dumping**: After processing, it dumps the final processed YAML content using the yaml.dump method.
+### Example Use Cases
+- **Configuration Management**: Ideal for managing and modifying configuration files dynamically, accommodating changes without manual edits.
+- **Complex Data Structures**: Supports scenarios where nested or linked data needs to be managed, making it easier to maintain large and intricate YAML structures.
+- **Automated Deployments**: Useful in CI/CD pipelines for dynamically generating and modifying configurations based on various conditions and inputs.
 
-## Result
-
-By effectively combining these functionalities, @fnet/yaml can seamlessly read, interpret, manipulate, and write YAML content. It thereby simplifies YAML data management for end-users, enhancing their work with YAML-formatted data and configuration files.
+In summary, **@fnet/yaml** provides a comprehensive and flexible approach to handling YAML files, offering powerful features for parsing, dynamic modifications, and content retrieval, all while ensuring robust error handling and user control through tag filtering.
