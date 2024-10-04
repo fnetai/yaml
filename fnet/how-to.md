@@ -1,14 +1,10 @@
 # Developer Guide for `@fnet/yaml`
 
-## Overview
+## 1. Overview
+`@fnet/yaml` is an npm library designed to process YAML files with enhanced capabilities such as using expressions in keys and values. It allows for dynamic value setting with setters, fetching data via file and HTTP URLs using getters, and conditionally applying transformations based on tags. This utility is particularly useful for developers working with complex YAML configurations that require dynamic and conditional data manipulation.
 
-`@fnet/yaml` is an advanced YAML processing library designed to extend the functionality of YAML by introducing expressions within keys and values of YAML documents. The library allows for dynamic evaluation and transformation of YAML content using setters (`s::`), getters (`g::`), and tags (`t::`). This makes it a powerful tool for configuration management and data transformation in development projects.
-
-Developers can leverage these features to automatically resolve YAML dependencies from local files, remote URLs, and manipulate YAML content based on expressions, enhancing the flexibility and reusability of YAML files in various environments.
-
-## Installation
-
-To install `@fnet/yaml`, use npm or yarn:
+## 2. Installation
+To install the `@fnet/yaml` library, you can use npm or yarn as shown in the following commands:
 
 ```bash
 npm install @fnet/yaml
@@ -20,102 +16,65 @@ or
 yarn add @fnet/yaml
 ```
 
-### Prerequisites
+## 3. Usage
 
-Ensure you have Node.js installed on your system (version 12 or above is recommended for broader compatibility).
+The primary export of the library is an asynchronous function that accepts parameters for processing YAML content or files with optional tag filtering. Here is a step-by-step guide on how to use the library:
 
-## Usage
-
-This section demonstrates how to use the `@fnet/yaml` library in your projects using the exported `index` function.
-
-### Importing the Library
-
-```javascript
-import yamlProcessor from '@fnet/yaml';
-```
-
-### Processing YAML with Expressions
-
-You can process a YAML file or content with expressions for dynamic transformation using the `index` function. Here's how to use the library:
+### Function Signature
 
 ```javascript
 import yamlProcessor from '@fnet/yaml';
 
-(async () => {
-  const yamlContent = `
-    s::example:
-      name: g::prop.name
-      location: g::file://./location.yaml
-  `;
-
-  const result = await yamlProcessor({ content: yamlContent, tags: ['dev'] });
-  console.log(result.parsed);
-})();
+const processYAML = async ({ content, file, tags }) => {
+  const result = await yamlProcessor({ content, file, tags });
+  console.log(result);
+};
 ```
 
-#### Parameters:
+### Parameters
 
-- `content`: The YAML string to be processed.
-- `file`: The file path to the YAML file to be processed (optional if `content` is provided).
-- `tags`: An array of tags to filter which parts of the YAML should be processed based on their tags.
-- `cwd`: The current working directory path (default is `process.cwd()`).
+- `content`: A string containing the YAML content to process.
+- `file`: Path to a YAML file that will be read and processed.
+- `tags`: An optional array of strings to filter which tags should be applied during processing.
 
-## Examples
+### Return Value
 
-### Example 1: Using Setters and Getters
+The function returns an object with the following properties:
+- `raw`: The original content of the YAML (either from the content string or from the file).
+- `content`: The processed YAML content as a string.
+- `parsed`: The processed YAML content as a parsed JavaScript object.
+
+## 4. Examples
+
+### Example 1: Processing YAML from a String
 
 ```javascript
 const yamlContent = `
-s::user:
-  name: John Doe
-  profile: g::http://example.com/profile.yaml
+t::dev::name: John Doe
+s::person.age: 30
+person:
+  skills: [coding, writing]
 `;
 
-(async () => {
-  const result = await yamlProcessor({ content: yamlContent });
-  console.log(result.parsed);
-})();
+processYAML({ content: yamlContent, tags: ['dev'] })
+  .then(result => console.log(result.parsed))
+  .catch(error => console.error('Error processing YAML:', error));
 ```
 
-This example demonstrates the use of getters to fetch remote YAML content and integrate it into the local YAML processing result.
+This example processes a YAML string, setting and conditionally including key-value pairs based on provided tags.
 
-### Example 2: Tag-Based Transformation
+### Example 2: Processing YAML from a File
 
 ```javascript
-const yamlFile = 'config.yaml';
-
-(async () => {
-  const result = await yamlProcessor({ file: yamlFile, tags: ['prod'] });
-  console.log(result.parsed);
-})();
+processYAML({ file: './config.yml', tags: ['prod'] })
+  .then(result => console.log(result.parsed))
+  .catch(error => console.error('Error processing YAML:', error));
 ```
 
-Utilize the tags to apply processing only to YAML parts marked with specific environment tags (`prod` in this case).
+In this example, the YAML content is read from a file, filtered using the 'prod' tag.
 
-## Common Issues and Troubleshooting
+## 5. Acknowledgement
 
-1. **File Not Found Error**: Ensure the file path is correct and the file exists when using the `file` parameter.
-2. **Invalid URL Error**: Verify all URLs are correct and accessible when using `g::` to fetch remote content.
-3. **YAML Parsing Errors**: Check for any syntax errors in your YAML document if parsing fails.
+This library leverages several external utility functions and libraries such as `yaml` for parsing YAML content, and `axios` for handling HTTP requests. Special thanks to the maintainers and contributors of these projects for providing reliable tools that enhance the functionality of this YAML processing library.
 
-## Advanced Topics
-
-### Custom Tags Processing
-
-You can use tags combined with setters to conditionally apply transformations:
-
-```yaml
-t::prod::s::service.url
-```
-
-This applies the setter only when the specified `prod` tag is activated.
-
-### Integrating Dynamic Content
-
-Inlining dynamic content or fetching external content is possible using the `g::` expressions to facilitate seamless YAML extensions with little to no manual intervention.
-
-## Acknowledgement
-
-While this library uses elements from the broader Node.js ecosystem, the direct set of external libraries is abstracted for installation purposes. Special thanks to the developers who have contributed to foundational packages in parsing and HTTP requests that are indirectly part of this library.
-
-By using `@fnet/yaml`, developers can create powerful YAML configurations that adapt dynamically based on your project's requirements.
+By following this guide, developers can efficiently leverage the capabilities of the `@fnet/yaml` library to manage and manipulate complex YAML configurations with dynamic data and conditional expressions.

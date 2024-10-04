@@ -2,19 +2,19 @@
 
 ## Introduction
 
-**@fnet/yaml** is a powerful and versatile tool designed to streamline the handling of YAML files. It is particularly useful for users who need to manage dynamic YAML content with various levels of complexity, including fetching external resources and transforming data based on specific conditions or environments. This project simplifies the intricate task of managing YAML configurations, making it ideal for developers, system administrators, and anyone working with configuration files.
+`@fnet/yaml` is a utility library designed to help users manage YAML files with dynamic content processing capabilities. Its primary function is to facilitate the manipulation of YAML by interpreting and applying expressions defined in the YAML keys and values. This can be particularly useful for users who need to handle complex configurations with environment-based modifications or external content integration.
 
 ## How It Works
 
-The project functions by allowing users to process YAML content or files using special keywords or expressions that enhance the YAML structure dynamically. It can fetch and merge content from external files or URLs, apply conditional logic using tags, and transform the data through specified rules. This enables users to maintain clean and efficient configuration files that automatically adapt to changing conditions or environments.
+The library reads YAML content and processes it based on directives specified within the YAML data. It uses expressions to set or get values, allowing users to dynamically modify the YAML content. The library supports fetching content from both local files and HTTP URLs, merging these into the initial YAML structure. Users can specify tags to conditionally apply certain changes based on the environment or context.
 
 ## Key Features
 
-- **Dynamic Expression Handling**: Easily adjust YAML keys and values using expressions that act as setters or getters, automating data manipulation.
-- **Conditional Logic via Tags**: Implement conditions using tags, which dictate how and when specific data transformations occur, allowing for environment-based configurations.
-- **External Resource Integration**: Seamlessly incorporate data from external files or URLs, automating content fetching and merging into your YAML files.
-- **Simplified Configuration Management**: Streamline configuration processes by using expressions to handle complex file structures without manual intervention.
+- **Dynamic Data Processing**: Allows the use of expressions like setters (s::), getters (g::), and tags (t::) within YAML to modify content dynamically.
+- **External Content Integration**: Fetches and merges content from local files and HTTP URLs into the YAML structure.
+- **Environment-Specific Configuration**: Supports tagging to conditionally include parts of configurations, enabling a flexible set-up for different environments like development or production.
+- **Simple Tag Management**: Tags can be used to apply changes only under specific conditions, helping manage environment-specific settings more effectively.
 
 ## Conclusion
 
-The **@fnet/yaml** project is a valuable tool for anyone needing to manage complex YAML configurations efficiently. By automating data retrieval and transformation, it reduces manual effort and minimizes errors in YAML file management. Its robust feature set and ability to dynamically adapt to various conditions make it an indispensable resource for both development and operational environments.
+`@fnet/yaml` is a practical tool for users needing to handle complex YAML configurations with dynamic and external content. By using expressions within the YAML, it simplifies the management of configurations, making it easier to adapt to different environments or external content changes.
