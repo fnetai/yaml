@@ -4,4 +4,4 @@ targets:
     params:
       bin: fnet-yaml
       name: "@fnet/yaml"
-      version: 0.1.17
+      version: 0.1.18

@@ -1,0 +1,19 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+type: object
+properties:
+  content:
+    type: string
+    description: The YAML content to be processed
+  file:
+    type: string
+    description: The path to the YAML file to be processed
+  tags:
+    type: array
+    items:
+      type: string
+    description: Optional array of tags to filter by
+  cwd:
+    type: string
+    description: The current working directory for file resolution
+required: []
+additionalProperties: false

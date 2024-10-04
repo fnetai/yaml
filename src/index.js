@@ -6,6 +6,35 @@ import path from 'node:path';
 import { URL } from 'node:url';
 import axios from 'axios';
 
+// Expressions in object key
+// s:: means setter
+// t:: means tag
+// Expression in object value
+// g:: means getter
+
+// Sample setters
+// s::person
+// s::person.name
+// s::person[0].name
+// s::person[0].name.first
+
+// Sample getters
+// g::person (in current key leve)
+// g::person.name
+// g::../person[0].name (go one level up and get the name of the first person with dot notation)
+// g::/person[0].name.first (root level and get the first person's first name with dot notation)
+// g::file://./person.yaml (read the file and merge the content)
+// g::file://../person.yaml (read the file and merge the content)
+// g::http://example.com/person.yaml (fetch the file and merge the content)
+
+// sample tags
+// t::dev::
+// t::prod::s::person
+// t::prod::t::local::s::person.name (nested tags with setters)
+
+// tag processor is being removed from the object and the next processor is being applied if the tag is in the provided tags array
+// tag processor can be combined with the setter processor to apply the setter only if the tag is in the provided tags array
+
 // Regex pattern to detect relative paths like "./" and "../"
 const relativePathPattern = /^(\.\/|(\.\.\/)+).*$/;
 
