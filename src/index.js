@@ -129,12 +129,12 @@ async function applySetter(obj, tags = []) {
       const subProcessor = tag.next; // Get the underlying processor (e.g., 's')
 
       // Handle the underlying processor (assume it is 's' for setter)
-      if (subProcessor?.processor === 's') {
+      if (subProcessor?.processor === 's' || subProcessor?.processor === 't') {
         delete obj[key]; // Remove the tag entry
         obj[subProcessor.expression] = value; // Apply the setter
         await applySetter(obj, tags); // Pass along the sub-processor
       }
-      else{
+      else {
         delete obj[key]; // Remove the tag entry
         obj[tag.statement] = value; // Apply the setter        
       }
