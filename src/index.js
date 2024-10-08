@@ -25,6 +25,7 @@ import axios from 'axios';
 // g::file://./person.yaml (read the file and merge the content)
 // g::file://../person.yaml (read the file and merge the content)
 // g::http://example.com/person.yaml (fetch the file and merge the content)
+// g::npm:@fnet/webauth@^0.1/fnet/input.yaml (fetch the file from npm and merge the content)
 
 // sample tags
 // t::dev::person
@@ -59,6 +60,17 @@ function isValidHttpURL(httpURL) {
   } catch (error) {
     return false;
   }
+}
+
+// Helper function to handle npm URLs (like g::npm:@fnet/webauth@^0.1/fnet/input.yaml)
+function getUnpkgUrl(npmPath) {
+  const npmMatch = npmPath.match(/^npm:(.*)$/);
+  if (npmMatch) {
+    // Construct the equivalent unpkg URL
+    const unpkgUrl = `https://unpkg.com/${npmMatch[1]}`;
+    return unpkgUrl;
+  }
+  return null;
 }
 
 async function fetchHttpContent(httpURL) {
@@ -199,7 +211,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             await applySetter(obj[key], tags);
             await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
           }
-        } else if (match.statement.startsWith('http') && isValidHttpURL(match.statement)) {
+        } else if ((match.statement.startsWith('http:')||match.statement.startsWith('https:')) && isValidHttpURL(match.statement)) {
           const httpContentResult = await fetchHttpContent(match.statement);
           if (httpContentResult) {
             const { parsed: httpContentObj } = httpContentResult;
@@ -207,7 +219,20 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             await applySetter(obj[key], tags);
             await applyGetter(obj[key], [], obj[key], tags);
           }
-        } else {
+        }
+        else if (match.statement.startsWith('npm:')) {
+          const unpkgUrl = getUnpkgUrl(match.statement);
+          if (unpkgUrl && isValidHttpURL(unpkgUrl)) {
+            const httpContentResult = await fetchHttpContent(unpkgUrl);
+            if (httpContentResult) {
+              const { parsed: httpContentObj } = httpContentResult;
+              obj[key] = httpContentObj;
+              await applySetter(obj[key], tags);
+              await applyGetter(obj[key], [], obj[key], tags);
+            }
+          }
+        }        
+        else {
           let paths;
           if (relativePathPattern.test(match.statement)) {
             const relativeSegments = match.statement.split('/');
