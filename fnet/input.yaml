@@ -11,6 +11,7 @@ properties:
     type: array
     items:
       type: string
+    alias: tag
     description: "Optional array of tags to filter by."
   cwd:
     type: string

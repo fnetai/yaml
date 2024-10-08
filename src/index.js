@@ -171,6 +171,11 @@ async function applySetter(obj, tags = []) {
       }
 
       delete obj[key];
+
+      if(typeof currentObj === 'object' && currentObj !== null) {
+        await applySetter(currentObj, tags);
+      }
+            
     } else if (typeof value === 'object' && value !== null) {
       await applySetter(value, tags);
     }
