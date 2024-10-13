@@ -1,11 +1,12 @@
 name: yaml
 
-npm::name: "@fnet/yaml"
+ai::name: "@fnet/yaml"
 
-s::repo.url: git+https://gitlab.com/fnetai/yaml.git
+s::repo.url: https://gitlab.com/fnetai/yaml.git
 
-s::features.cli.extend: false
-s::features.iife: false
-s::features.app: false
+features:
+  iife: false
+  app: false
+  t::prod::cli: false
 
 input: g::file://fnet/input.yaml

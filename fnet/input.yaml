@@ -11,8 +11,8 @@ properties:
     type: array
     items:
       type: string
-    alias: tag
     description: "Optional array of tags to filter by."
   cwd:
     type: string
-    description: "Current working directory, defaults to process.cwd()."
+    description: "Current working directory, default is the process's current working directory."
+required: []

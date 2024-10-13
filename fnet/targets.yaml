@@ -1,7 +1,6 @@
-targets:
-  - name: npm
-    enabled: true
-    params:
-      bin: fnet-yaml
-      name: "@fnet/yaml"
-      version: 0.1.23
+npm-publish:
+  type: npm
+  enabled: true
+  version: 0.1.24
+  params:
+    name: "@fnet/yaml"
