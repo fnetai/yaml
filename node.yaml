@@ -4,9 +4,11 @@ ai::name: "@fnet/yaml"
 
 s::repo.url: https://gitlab.com/fnetai/yaml.git
 
+input: g::file://fnet/input.yaml
+
 features:
+  dts: true
   iife: false
   app: false
   t::prod::cli: false
-
-input: g::file://fnet/input.yaml
+  
