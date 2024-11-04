@@ -4,7 +4,6 @@ import getValue from 'get-value';
 import fs from 'node:fs';
 import path from 'node:path';
 import { URL } from 'node:url';
-import axios from 'axios';
 
 // Expressions in object key
 // s:: means setter for a propery path with dot notation
@@ -75,9 +74,16 @@ function getUnpkgUrl(npmPath) {
 
 async function fetchHttpContent(httpURL) {
   try {
-    const response = await axios.get(httpURL);
+    const response = await fetch(httpURL);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const text = await response.text();
+    
     try {
-      const parsed = yaml.parse(response.data);
+      const parsed = yaml.parse(text);
       return { parsed };
     } catch (parseError) {
       console.error(`Error parsing YAML from ${httpURL}:`, parseError);
