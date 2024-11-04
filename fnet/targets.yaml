@@ -1,6 +1,6 @@
 npm-publish:
   type: npm
   enabled: true
-  version: 0.1.26
+  version: 0.1.27
   params:
     name: "@fnet/yaml"

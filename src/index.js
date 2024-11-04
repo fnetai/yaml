@@ -86,10 +86,10 @@ async function fetchHttpContent(httpURL) {
       const parsed = yaml.parse(text);
       return { parsed };
     } catch (parseError) {
-      console.error(`Error parsing YAML from ${httpURL}:`, parseError);
+      console.error(`Error parsing YAML from ${httpURL}:`, parseError?.message);
     }
   } catch (networkError) {
-    console.error(`Error fetching content from ${httpURL}:`, networkError);
+    console.error(`Error fetching content from ${httpURL}:`, networkError?.message);
   }
 }
 
