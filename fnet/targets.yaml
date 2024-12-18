@@ -1,13 +1,13 @@
 npm-publish:
   type: npm
   t::nd::enabled: true
-  version: 0.1.27
+  version: 0.1.28
   params:
     name: "@fnet/yaml"
 
 pyip-publish:
   type: pyip
   t::py::enabled: true
-  version: 0.1.28
+  version: 0.1.29
   params:
     name: "fnet_yaml"
