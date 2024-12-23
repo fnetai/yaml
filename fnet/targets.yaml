@@ -5,8 +5,8 @@ npm-publish:
   params:
     name: "@fnet/yaml"
 
-pyip-publish:
-  type: pyip
+pypi-publish:
+  type: pypi
   t::py::enabled: true
   version: 0.1.29
   params:
