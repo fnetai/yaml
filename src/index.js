@@ -75,13 +75,13 @@ function getUnpkgUrl(npmPath) {
 async function fetchHttpContent(httpURL) {
   try {
     const response = await fetch(httpURL);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const text = await response.text();
-    
+
     try {
       const parsed = yaml.parse(text);
       return { parsed };
@@ -190,10 +190,10 @@ async function applySetter(obj, tags = []) {
 
       delete obj[key];
 
-      if(typeof currentObj === 'object' && currentObj !== null) {
+      if (typeof currentObj === 'object' && currentObj !== null) {
         await applySetter(currentObj, tags);
       }
-            
+
     } else if (typeof value === 'object' && value !== null) {
       await applySetter(value, tags);
     }
@@ -217,13 +217,13 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             await applySetter(obj[key], tags);
             await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
           }
-        } else if ((match.statement.startsWith('http:')||match.statement.startsWith('https:')) && isValidHttpURL(match.statement)) {
+        } else if ((match.statement.startsWith('http:') || match.statement.startsWith('https:')) && isValidHttpURL(match.statement)) {
           const httpContentResult = await fetchHttpContent(match.statement);
           if (httpContentResult) {
             const { parsed: httpContentObj } = httpContentResult;
             obj[key] = httpContentObj;
             await applySetter(obj[key], tags);
-            await applyGetter(obj[key], [], obj[key], tags);
+            await applyGetter(obj[key], [], obj[key], cwd, tags);
           }
         }
         else if (match.statement.startsWith('npm:')) {
@@ -234,10 +234,10 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
               const { parsed: httpContentObj } = httpContentResult;
               obj[key] = httpContentObj;
               await applySetter(obj[key], tags);
-              await applyGetter(obj[key], [], obj[key], tags);
+              await applyGetter(obj[key], [], obj[key], cwd, tags);
             }
           }
-        }        
+        }
         else {
           let paths;
           if (relativePathPattern.test(match.statement)) {
