@@ -72,7 +72,7 @@ function getUnpkgUrl(npmPath) {
   return null;
 }
 
-async function fetchHttpContent(httpURL) {
+async function fetchHttpContent(httpURL, cwd, tags) {
   try {
     const response = await fetch(httpURL);
 
@@ -82,33 +82,25 @@ async function fetchHttpContent(httpURL) {
 
     const text = await response.text();
 
-    try {
-      const parsed = yaml.parse(text);
-      return { parsed };
-    } catch (parseError) {
-      console.error(`Error parsing YAML from ${httpURL}:`, parseError?.message);
-    }
+    const { parsed } = await fnetYaml({ content: text, cwd, tags });
+
+    return { parsed }
   } catch (networkError) {
     console.error(`Error fetching content from ${httpURL}:`, networkError?.message);
   }
 }
 
 // Read the file content based on the filePath and current working directory (cwd)
-function readFileContent(filePath, cwd) {
+async function readFileContent(filePath, cwd, tags) {
   const absolutePath = path.resolve(cwd, filePath);
-  if (fs.existsSync(absolutePath)) {
-    const fileContent = fs.readFileSync(absolutePath, 'utf-8');
-    try {
-      const parsed = yaml.parse(fileContent);
-      return {
-        parsed,
-        resolvedPath: absolutePath,
-        resolvedDir: path.dirname(absolutePath),
-      };
-    } catch (parseError) {
-      console.error(`Error parsing YAML from file ${absolutePath}:`, parseError);
-    }
-  }
+
+  const { parsed } = await fnetYaml({ file: absolutePath, tags });
+
+  return {
+    parsed,
+    resolvedPath: absolutePath,
+    resolvedDir: path.dirname(absolutePath),
+  };
 }
 
 // Resolve a relative path based on the current path and the given relative path
@@ -209,7 +201,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
       if (match && match.processor === 'g') {
         if (match.statement.startsWith('file://') && isValidFileURL(match.statement)) {
           const filePath = match.statement.replace('file://', '');
-          const fileContentResult = readFileContent(filePath, cwd);
+          const fileContentResult = await readFileContent(filePath, cwd, tags);
 
           if (fileContentResult) {
             const { parsed: fileContentObj, resolvedDir } = fileContentResult;
@@ -218,7 +210,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
           }
         } else if ((match.statement.startsWith('http:') || match.statement.startsWith('https:')) && isValidHttpURL(match.statement)) {
-          const httpContentResult = await fetchHttpContent(match.statement);
+          const httpContentResult = await fetchHttpContent(match.statement,cwd, tags);
           if (httpContentResult) {
             const { parsed: httpContentObj } = httpContentResult;
             obj[key] = httpContentObj;
@@ -229,7 +221,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
         else if (match.statement.startsWith('npm:')) {
           const unpkgUrl = getUnpkgUrl(match.statement);
           if (unpkgUrl && isValidHttpURL(unpkgUrl)) {
-            const httpContentResult = await fetchHttpContent(unpkgUrl);
+            const httpContentResult = await fetchHttpContent(unpkgUrl,cwd, tags);
             if (httpContentResult) {
               const { parsed: httpContentObj } = httpContentResult;
               obj[key] = httpContentObj;
@@ -285,7 +277,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
  * @param {Array<string>} [args.tags] - Optional array of tags to filter by.
  * @returns {Object} - Processed YAML content and its parsed representation.
  */
-export default async ({ content, file, tags = [], cwd = process.cwd() }, context) => {
+async function fnetYaml({ content, file, tags = [], cwd = process.cwd() }, context) {
   let parsed;
 
   // If file parameter is provided, read the file content
@@ -315,3 +307,5 @@ export default async ({ content, file, tags = [], cwd = process.cwd() }, context
     parsed,
   };
 };
+
+export default fnetYaml;
