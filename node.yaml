@@ -8,7 +8,8 @@ input: g::file://fnet/input.yaml
 
 features:
   dts: true
-  iife: false
   app: false
-  t::prod::cli: false
+  cli: false
+
+  t::dev::cli: true
   t::py::s::runtime.type: "python"
