@@ -1,4 +1,4 @@
-import * as yaml from 'yaml';
+import { parse, stringify } from 'yaml';
 import expression from '@fnet/expression';
 import getValue from 'get-value';
 import fs from 'node:fs';
@@ -198,35 +198,61 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
     if (typeof value === "string") {
       const match = await expression({ expression: value });
 
-      if (match && match.processor === 'g') {
+      if (match?.processor === 'g' || match?.processor === 'gtext') {
         if (match.statement.startsWith('file://') && isValidFileURL(match.statement)) {
           const filePath = match.statement.replace('file://', '');
-          const fileContentResult = await readFileContent(filePath, cwd, tags);
-
-          if (fileContentResult) {
-            const { parsed: fileContentObj, resolvedDir } = fileContentResult;
-            obj[key] = fileContentObj;
-            await applySetter(obj[key], tags);
-            await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
+          if (match.processor === 'gtext') {
+            const fileContent = fs.readFileSync(path.resolve(cwd, filePath), 'utf-8');
+            obj[key] = fileContent;
           }
-        } else if ((match.statement.startsWith('http:') || match.statement.startsWith('https:')) && isValidHttpURL(match.statement)) {
-          const httpContentResult = await fetchHttpContent(match.statement,cwd, tags);
-          if (httpContentResult) {
-            const { parsed: httpContentObj } = httpContentResult;
-            obj[key] = httpContentObj;
-            await applySetter(obj[key], tags);
-            await applyGetter(obj[key], [], obj[key], cwd, tags);
+          else {
+            const fileContentResult = await readFileContent(filePath, cwd, tags);
+            if (fileContentResult) {
+              const { parsed: fileContentObj, resolvedDir } = fileContentResult;
+              obj[key] = fileContentObj;
+              await applySetter(obj[key], tags);
+              await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
+            }
           }
         }
-        else if (match.statement.startsWith('npm:')) {
-          const unpkgUrl = getUnpkgUrl(match.statement);
-          if (unpkgUrl && isValidHttpURL(unpkgUrl)) {
-            const httpContentResult = await fetchHttpContent(unpkgUrl,cwd, tags);
+        else if ((match.statement.startsWith('http:') || match.statement.startsWith('https:')) && isValidHttpURL(match.statement)) {
+          if (match.processor === 'gtext') {
+            const response = await fetch(match.statement);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const fileContent = await response.text();
+            obj[key] = fileContent;
+          }
+          else {
+            const httpContentResult = await fetchHttpContent(match.statement, cwd, tags);
             if (httpContentResult) {
               const { parsed: httpContentObj } = httpContentResult;
               obj[key] = httpContentObj;
               await applySetter(obj[key], tags);
               await applyGetter(obj[key], [], obj[key], cwd, tags);
+            }
+          }
+        }
+        else if (match.statement.startsWith('npm:')) {
+          const unpkgUrl = getUnpkgUrl(match.statement);
+          if (unpkgUrl && isValidHttpURL(unpkgUrl)) {
+            if (match.processor === 'gtext') {
+              const response = await fetch(unpkgUrl);
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              const fileContent = await response.text();
+              obj[key] = fileContent;
+            }
+            else {
+              const httpContentResult = await fetchHttpContent(unpkgUrl, cwd, tags);
+              if (httpContentResult) {
+                const { parsed: httpContentObj } = httpContentResult;
+                obj[key] = httpContentObj;
+                await applySetter(obj[key], tags);
+                await applyGetter(obj[key], [], obj[key], cwd, tags);
+              }
             }
           }
         }
@@ -296,14 +322,14 @@ async function fnetYaml({ content, file, tags = [], cwd = process.cwd() }, conte
     throw new Error("No content provided or file could not be read.");
   }
 
-  parsed = yaml.parse(content);
+  parsed = parse(content);
 
   await applySetter(parsed, tags); // s:: processor with 't' tag support
   await applyGetter(parsed, [], parsed, cwd, tags); // g:: processor
 
   return {
     raw: content,
-    content: yaml.stringify(parsed),
+    content: stringify(parsed),
     parsed,
   };
 };

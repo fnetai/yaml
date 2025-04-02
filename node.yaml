@@ -1,6 +1,6 @@
 name: yaml
 
-ai::name: "@fnet/yaml"
+npm::name: "@fnet/yaml"
 
 s::repo.url: https://gitlab.com/fnetai/yaml.git
 
@@ -10,6 +10,6 @@ features:
   dts: true
   app: false
   cli: false
+  # s::cli.fargs.default: dev
 
-  t::dev::cli: true
   t::py::s::runtime.type: "python"
