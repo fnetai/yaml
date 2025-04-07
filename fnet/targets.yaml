@@ -8,6 +8,6 @@ npm-publish:
 pypi-publish:
   type: pypi
   t::py::enabled: true
-  version: 0.1.29
+  version: 0.1.30
   params:
     name: "fnet_yaml"
