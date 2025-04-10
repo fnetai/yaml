@@ -7,9 +7,9 @@ s::repo.url: https://gitlab.com/fnetai/yaml.git
 input: g::file://fnet/input.yaml
 
 features:
-  dts: false
+  dts: true
   app: false
   cli: false
-  # s::cli.fargs.default: dev
+  # s::cli.fargs.default: dev      
 
   t::py::s::runtime.type: "python"
