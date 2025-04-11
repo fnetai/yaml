@@ -296,12 +296,27 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
 }
 
 /**
+ * @typedef {Object} Input
+ * @property {string} [content] - The YAML content to be processed
+ * @property {string} [file] - The path to the YAML file to be processed
+ * @property {string[]} [tags=[]] - Array of tags to filter content by (e.g., ['dev', 'prod'])
+ * @property {string} [cwd=process.cwd()] - Current working directory for resolving relative paths
+ */
+
+/**
+ * @typedef {Object} Output
+ * @property {string} raw - Original unprocessed YAML content
+ * @property {string} content - Processed YAML content as string
+ * @property {Object} parsed - Processed YAML content as JavaScript object
+ */
+
+/**
  * Processes the provided YAML content or file with optional tag filtering.
- * @param {Object} args
- * @param {string} [args.content] - The YAML content to be processed.
- * @param {string} [args.file] - The path to the YAML file to be processed.
- * @param {Array<string>} [args.tags] - Optional array of tags to filter by.
- * @returns {Object} - Processed YAML content and its parsed representation.
+ * @param {Input} args - The configuration object
+ * @param {Object} [context] - Additional context object (currently unused)
+ * @returns {Promise<Output>} Processed YAML result
+ * @throws {Error} When neither content nor file is provided
+ * @throws {Error} When specified file doesn't exist
  */
 async function fnetYaml({ content, file, tags = [], cwd = process.cwd() }, context) {
   let parsed;

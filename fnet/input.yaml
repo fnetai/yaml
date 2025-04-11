@@ -3,16 +3,18 @@ type: object
 properties:
   content:
     type: string
-    description: "The YAML content to be processed."
+    description: "The YAML content to be processed"
   file:
     type: string
-    description: "The path to the YAML file to be processed."
+    description: "The path to the YAML file to be processed"
   tags:
     type: array
     items:
       type: string
-    description: "Optional array of tags to filter by."
+    description: "Array of tags to filter content by (e.g., ['dev', 'prod'])"
+    default: []
   cwd:
     type: string
-    description: "Current working directory, default is the process's current working directory."
+    description: "Current working directory for resolving relative paths"
 required: []
+additionalProperties: false

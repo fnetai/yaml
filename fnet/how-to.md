@@ -20,11 +20,26 @@ yarn add @fnet/yaml
 
 ## Usage
 
-The library is designed to handle YAML content with special expression tags for dynamic data manipulation. Below is a simple guide on how to use the library to process YAML data.
+The library processes YAML content with special expression tags for dynamic data manipulation. Here's a guide on using the library:
+
+### Function Signature
+
+```typescript
+type Input = {
+    content?: string;        // The YAML content to be processed
+    file?: string;          // The path to the YAML file to be processed
+    tags?: string[];        // Array of tags to filter content by (e.g., ['dev', 'prod'])
+    cwd?: string;          // Current working directory for resolving relative paths
+};
+
+type Output = {
+    raw: string;           // Original unprocessed YAML content
+    content: string;       // Processed YAML content as string
+    parsed: Object;        // Processed YAML content as JavaScript object
+};
+```
 
 ### Example Use Case
-
-Suppose you have a YAML configuration file that needs to pull in information dynamically from different sources like files or URLs. You can use the library to process this YAML content accordingly.
 
 ```javascript
 import yamlProcessor from '@fnet/yaml';
@@ -43,10 +58,14 @@ import yamlProcessor from '@fnet/yaml';
     `;
 
     try {
-        const { content, parsed } = await yamlProcessor({ content: inputYaml, tags: ['prod'] });
+        const { raw, content, parsed } = await yamlProcessor({ 
+            content: inputYaml, 
+            tags: ['prod'] 
+        });
         
-        console.log('Processed YAML:');
-        console.log(content);
+        console.log('Original YAML:', raw);
+        console.log('Processed YAML:', content);
+        console.log('Parsed Object:', parsed);
 
     } catch (error) {
         console.error('Error processing YAML:', error);
@@ -58,7 +77,7 @@ import yamlProcessor from '@fnet/yaml';
 
 ### Setting Values with Setters
 
-Setters (e.g., `s::`) allow you to dynamically set values in your YAML structure.
+Setters (`s::`) allow you to dynamically set values in your YAML structure:
 
 ```yaml
 s::settings.server.host: localhost
@@ -67,24 +86,47 @@ s::settings.server.port: 8080
 
 ### Getting Values with Getters
 
-Getters (e.g., `g::`) retrieve values, which can include fetching and merging external file content.
+Getters (`g::`) retrieve values from various sources:
 
 ```yaml
+# Local file
 config: g::file://./config.yaml
+
+# HTTP(S) URL
 apiData: g::http://api.example.com/data.yaml
+
+# NPM package
 npmConfig: g::npm:@fnet/webauth@^0.1/config.yaml
 ```
 
 ### Using Tags
 
-Tags (e.g., `t::`) conditionally process sections of your YAML based on the environment or context.
+Tags (`t::`) conditionally process sections based on the environment:
 
 ```yaml
 t::dev::logLevel: debug
 t::prod::logLevel: error
 ```
 
-By specifying the tag when processing, you control which sections are included.
+### Combining Features
+
+You can combine different features:
+
+```yaml
+# Tag with setter
+t::prod::s::database.host: prod-db.example.com
+
+# Tag with getter
+t::dev::config: g::file://./dev-config.yaml
+```
+
+## Error Handling
+
+The processor throws errors in these cases:
+- When neither content nor file is provided
+- When a specified file doesn't exist
+- When YAML parsing fails
+- When expression processing fails
 
 ## Acknowledgement
 
