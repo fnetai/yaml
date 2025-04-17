@@ -198,12 +198,16 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
     if (typeof value === "string") {
       const match = await expression({ expression: value });
 
-      if (match?.processor === 'g' || match?.processor === 'gtext') {
+      if (match?.processor === 'g' || match?.processor === 'gtext' || match?.processor === 'gbinary') {
         if (match.statement.startsWith('file://') && isValidFileURL(match.statement)) {
           const filePath = match.statement.replace('file://', '');
           if (match.processor === 'gtext') {
             const fileContent = fs.readFileSync(path.resolve(cwd, filePath), 'utf-8');
             obj[key] = fileContent;
+          }
+          else if (match.processor === 'gbinary') {
+            const fileContent = fs.readFileSync(path.resolve(cwd, filePath));  // Buffer olarak okur
+            obj[key] = fileContent;  // Direkt Buffer olarak atar
           }
           else {
             const fileContentResult = await readFileContent(filePath, cwd, tags);
@@ -223,6 +227,14 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             }
             const fileContent = await response.text();
             obj[key] = fileContent;
+          }
+          else if (match.processor === 'gbinary') {
+            const response = await fetch(match.statement);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const buffer = await response.arrayBuffer();
+            obj[key] = Buffer.from(buffer);
           }
           else {
             const httpContentResult = await fetchHttpContent(match.statement, cwd, tags);
@@ -244,6 +256,14 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
               }
               const fileContent = await response.text();
               obj[key] = fileContent;
+            }
+            else if (match.processor === 'gbinary') {
+              const response = await fetch(unpkgUrl);
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              const buffer = await response.arrayBuffer();
+              obj[key] = Buffer.from(buffer);
             }
             else {
               const httpContentResult = await fetchHttpContent(unpkgUrl, cwd, tags);
