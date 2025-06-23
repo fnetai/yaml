@@ -9,7 +9,7 @@ input: g::file://fnet/input.yaml
 features:
   dts: true
   app: false
-  cli: false
-  # s::cli.fargs.default: dev      
+  cli: true
+  # s::cli.fargs.default: dev
 
   t::py::s::runtime.type: "python"

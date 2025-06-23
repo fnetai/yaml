@@ -23,8 +23,11 @@ import { URL } from 'node:url';
 // g::/person[0].name.first (root level and get the first person's first name with dot notation)
 // g::file://./person.yaml (read the file and merge the content)
 // g::file://../person.yaml (read the file and merge the content)
+// g::file://./person.yaml#/person/name (read the file and extract specific path)
 // g::http://example.com/person.yaml (fetch the file and merge the content)
+// g::http://example.com/person.yaml#/data/users/0 (fetch the file and extract specific path)
 // g::npm:@fnet/webauth@^0.1/fnet/input.yaml (fetch the file from npm and merge the content)
+// g::npm:@fnet/webauth@^0.1/fnet/input.yaml#/config/database (fetch from npm and extract specific path)
 
 // sample tags
 // t::dev::person
@@ -70,6 +73,29 @@ function getUnpkgUrl(npmPath) {
     return unpkgUrl;
   }
   return null;
+}
+
+// Helper function to parse URL with fragment for path extraction
+function parseUrlWithFragment(urlString) {
+  try {
+    const url = new URL(urlString);
+    const baseUrl = urlString.split('#')[0];
+    const fragment = url.hash ? url.hash.substring(1) : null; // Remove # character
+
+    let pathSegments = null;
+    if (fragment && fragment.startsWith('/')) {
+      pathSegments = fragment.substring(1).split('/').map(segment => {
+        // Handle array index notation
+        const arrayIndexMatch = segment.match(/^(\d+)$/);
+        return arrayIndexMatch ? parseInt(arrayIndexMatch[1], 10) : segment;
+      }).filter(segment => segment !== ''); // Remove empty segments
+    }
+
+    return { baseUrl, pathSegments };
+  } catch (error) {
+    // If URL parsing fails, return original URL without fragment support
+    return { baseUrl: urlString, pathSegments: null };
+  }
 }
 
 async function fetchHttpContent(httpURL, cwd, tags) {
@@ -200,7 +226,9 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
 
       if (match?.processor === 'g' || match?.processor === 'gtext' || match?.processor === 'gbinary') {
         if (match.statement.startsWith('file://') && isValidFileURL(match.statement)) {
-          const filePath = match.statement.replace('file://', '');
+          const { baseUrl, pathSegments } = parseUrlWithFragment(match.statement);
+          const filePath = baseUrl.replace('file://', '');
+
           if (match.processor === 'gtext') {
             const fileContent = fs.readFileSync(path.resolve(cwd, filePath), 'utf-8');
             obj[key] = fileContent;
@@ -213,15 +241,24 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             const fileContentResult = await readFileContent(filePath, cwd, tags);
             if (fileContentResult) {
               const { parsed: fileContentObj, resolvedDir } = fileContentResult;
-              obj[key] = fileContentObj;
-              await applySetter(obj[key], tags);
-              await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
+
+              // Apply path extraction if fragment is provided
+              if (pathSegments && pathSegments.length > 0) {
+                const extractedValue = getValue(fileContentObj, pathSegments);
+                obj[key] = extractedValue !== undefined ? extractedValue : null;
+              } else {
+                obj[key] = fileContentObj;
+                await applySetter(obj[key], tags);
+                await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
+              }
             }
           }
         }
         else if ((match.statement.startsWith('http:') || match.statement.startsWith('https:')) && isValidHttpURL(match.statement)) {
+          const { baseUrl, pathSegments } = parseUrlWithFragment(match.statement);
+
           if (match.processor === 'gtext') {
-            const response = await fetch(match.statement);
+            const response = await fetch(baseUrl);
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -229,7 +266,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             obj[key] = fileContent;
           }
           else if (match.processor === 'gbinary') {
-            const response = await fetch(match.statement);
+            const response = await fetch(baseUrl);
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -237,17 +274,25 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             obj[key] = Buffer.from(buffer);
           }
           else {
-            const httpContentResult = await fetchHttpContent(match.statement, cwd, tags);
+            const httpContentResult = await fetchHttpContent(baseUrl, cwd, tags);
             if (httpContentResult) {
               const { parsed: httpContentObj } = httpContentResult;
-              obj[key] = httpContentObj;
-              await applySetter(obj[key], tags);
-              await applyGetter(obj[key], [], obj[key], cwd, tags);
+
+              // Apply path extraction if fragment is provided
+              if (pathSegments && pathSegments.length > 0) {
+                const extractedValue = getValue(httpContentObj, pathSegments);
+                obj[key] = extractedValue !== undefined ? extractedValue : null;
+              } else {
+                obj[key] = httpContentObj;
+                await applySetter(obj[key], tags);
+                await applyGetter(obj[key], [], obj[key], cwd, tags);
+              }
             }
           }
         }
         else if (match.statement.startsWith('npm:')) {
-          const unpkgUrl = getUnpkgUrl(match.statement);
+          const { baseUrl: baseNpmUrl, pathSegments } = parseUrlWithFragment(match.statement);
+          const unpkgUrl = getUnpkgUrl(baseNpmUrl);
           if (unpkgUrl && isValidHttpURL(unpkgUrl)) {
             if (match.processor === 'gtext') {
               const response = await fetch(unpkgUrl);
@@ -269,9 +314,16 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
               const httpContentResult = await fetchHttpContent(unpkgUrl, cwd, tags);
               if (httpContentResult) {
                 const { parsed: httpContentObj } = httpContentResult;
-                obj[key] = httpContentObj;
-                await applySetter(obj[key], tags);
-                await applyGetter(obj[key], [], obj[key], cwd, tags);
+
+                // Apply path extraction if fragment is provided
+                if (pathSegments && pathSegments.length > 0) {
+                  const extractedValue = getValue(httpContentObj, pathSegments);
+                  obj[key] = extractedValue !== undefined ? extractedValue : null;
+                } else {
+                  obj[key] = httpContentObj;
+                  await applySetter(obj[key], tags);
+                  await applyGetter(obj[key], [], obj[key], cwd, tags);
+                }
               }
             }
           }
