@@ -4,12 +4,18 @@ npm::name: "@fnet/yaml"
 
 s::repo.url: https://gitlab.com/fnetai/yaml.git
 
-input: g::file://fnet/input.yaml
+input: g::file://./fnet/input.yaml
+commands: g::file://./fnet/commands.yaml
 
 features:
   dts: true
   app: false
-  cli: true
-  # s::cli.fargs.default: dev
+  cli:
+    s::fargs:enabled: true
 
+    t::nd::enabled: false
+    t::nd::s::fargs:enabled: false
+
+
+  s::runtime.type: "bun"
   t::py::s::runtime.type: "python"

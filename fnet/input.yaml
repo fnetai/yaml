@@ -17,4 +17,3 @@ properties:
     type: string
     description: "Current working directory for resolving relative paths"
 required: []
-additionalProperties: false
