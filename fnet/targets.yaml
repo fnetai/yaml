@@ -1,13 +1,6 @@
 npm-publish:
   type: npm
-  t::nd::enabled: true
+  enabled: true
   version: 0.1.46
   params:
     name: "@fnet/yaml"
-
-pypi-publish:
-  type: pypi
-  t::py::enabled: true
-  version: 0.1.30
-  params:
-    name: "fnet_yaml"

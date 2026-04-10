@@ -1,0 +1,21 @@
+name: "Test: Error Handling"
+description: "Testing error handling for invalid inputs"
+
+# Valid data for reference
+s::valid.data: "This works"
+
+# Test cases that should handle errors gracefully:
+
+# 1. Missing file (should handle gracefully or throw clear error)
+# missingFile: g::file://./non-existent-file.yaml
+
+# 2. Invalid fragment path (undefined path should return undefined or handle gracefully)
+invalidFragment: g::file://../tests/test-data.yaml#/non/existent/path
+
+# 3. Invalid local path (should return undefined)
+invalidLocal: g::./non.existent.path
+
+# 4. Valid paths for comparison
+validFragment: g::file://../tests/test-data.yaml#/person/name
+validLocal: g::./valid.data
+

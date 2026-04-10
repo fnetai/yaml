@@ -1,0 +1,5 @@
+# Test: Error Handling
+# Testing graceful error handling for invalid inputs
+
+file: ../tests/error-handling.yaml
+

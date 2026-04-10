@@ -1,0 +1,34 @@
+name: "Test: Combined Features"
+description: "Testing combination of all @fnet/yaml features"
+
+# Setter + Getter combination
+s::defaults.theme: dark
+s::defaults.language: en
+currentTheme: g::defaults.theme
+currentLanguage: g::defaults.language
+
+# Tag + Setter combination
+t::prod::s::environment: production
+t::prod::s::debug: false
+t::dev::s::environment: development
+t::dev::s::debug: true
+
+# Getter + Fragment combination
+dbHost: g::file://./test-data.yaml#/config/database/host
+apiVersion: g::file://./test-data.yaml#/config/api/version
+
+# Tag + Setter + Getter combination
+t::prod::s::api.baseUrl: https://api.example.com
+t::prod::s::api.timeout: 30
+apiUrl: g::api.baseUrl
+
+# Tag + Setter + Getter + Fragment combination
+t::prod::s::remote.user: g::http://jsonplaceholder.typicode.com/users/1#/name
+t::prod::s::remote.email: g::http://jsonplaceholder.typicode.com/users/1#/email
+
+# Complex nested structure
+s::app.config.database.primary: g::file://./test-data.yaml#/config/database/host
+s::app.config.database.port: g::file://./test-data.yaml#/config/database/port
+s::app.users[0]: g::file://./test-data.yaml#/people/0
+s::app.users[1]: g::file://./test-data.yaml#/people/1
+

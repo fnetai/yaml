@@ -1,0 +1,17 @@
+name: "Test: Nested Tags"
+description: "Testing t:: processor with nested tags"
+
+# Single tag
+t::prod::s::environment: production
+
+# Nested tags - both prod AND local must be in tags array
+t::prod::t::local::s::database.host: localhost
+t::prod::t::local::s::database.port: 5432
+
+# Nested tags - prod AND cloud (should be filtered out since cloud not in tags)
+t::prod::t::cloud::s::database.host: cloud-db.example.com
+t::prod::t::cloud::s::database.port: 5432
+
+# Multiple nested levels
+t::prod::t::local::t::debug::s::logging.level: debug
+

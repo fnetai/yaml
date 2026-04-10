@@ -1,0 +1,5 @@
+# Test: NPM Getter
+# Testing g:: processor with npm: protocol
+
+file: ../tests/getter-npm.yaml
+

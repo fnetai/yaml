@@ -1,0 +1,11 @@
+name: "Test 1: Basic Fragment Extraction"
+description: "Testing basic path extraction with file:// URLs"
+
+# Without fragment - get entire file
+fullData: g::file://./test-data.yaml
+
+# With fragment - extract specific simple paths
+personName: g::file://./test-data.yaml#/person/name
+personAge: g::file://./test-data.yaml#/person/age
+personCity: g::file://./test-data.yaml#/person/address/city
+

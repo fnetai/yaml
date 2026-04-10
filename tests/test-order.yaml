@@ -1,0 +1,14 @@
+# Test: Property Order Preservation
+# Testing if YAML property order is preserved after parse/stringify
+
+first: 1
+second: 2
+third: 3
+s::fourth.nested: 4
+fifth: 5
+s::sixth.deep.value: 6
+seventh: 7
+eighth: g::file://../tests/test-data.yaml#/person/name
+ninth: 9
+tenth: 10
+

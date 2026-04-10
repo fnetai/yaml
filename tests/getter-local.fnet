@@ -1,0 +1,5 @@
+# Test: Local Getter
+# Testing g:: processor with local paths
+
+file: ../tests/getter-local.yaml
+

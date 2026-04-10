@@ -1,0 +1,13 @@
+name: "Test: File Getter"
+description: "Testing g:: processor with file:// URLs"
+
+# Load entire file
+fullData: g::file://./test-data.yaml
+
+# Load with relative path
+relativeData: g::file://../tests/test-data.yaml
+
+# Multiple file loads
+person: g::file://./test-data.yaml
+config: g::file://./test-data.yaml
+

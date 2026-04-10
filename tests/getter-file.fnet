@@ -1,0 +1,5 @@
+# Test: File Getter
+# Testing g:: processor with file:// URLs
+
+file: ../tests/getter-file.yaml
+

@@ -1,0 +1,16 @@
+name: "Test: NPM Getter"
+description: "Testing g:: processor with npm: protocol (via unpkg.com)"
+
+# NPM package loading via unpkg.com
+# Format: npm:package@version/path/to/file
+
+# Load package.json from a popular package
+# Example: npm:react@18.2.0/package.json
+packageInfo: g::npm:lodash@4.17.21/package.json#/name
+
+# Load with fragment - extract specific field
+packageVersion: g::npm:lodash@4.17.21/package.json#/version
+
+# Load entire package.json
+fullPackage: g::npm:lodash@4.17.21/package.json
+

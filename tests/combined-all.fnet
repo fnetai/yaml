@@ -1,0 +1,7 @@
+# Test: Combined Features
+# Testing combination of setter, getter, tag, and fragment
+
+file: ../tests/combined-all.yaml
+tags:
+  - prod
+

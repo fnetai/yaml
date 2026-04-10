@@ -1,0 +1,5 @@
+# Test 2: Array Index Fragment
+# Testing array index extraction
+
+file: ../tests/fragment-array.yaml
+

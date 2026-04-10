@@ -1,0 +1,21 @@
+name: "Test: Setter with Arrays"
+description: "Testing s:: processor with array index notation"
+
+# Array index setter — [index] must be a standalone dot-separated segment
+s::users[0].name: Alice
+s::users[0].age: 25
+s::users[0].role: Developer
+
+s::users[1].name: Bob
+s::users[1].age: 35
+s::users[1].role: Designer
+
+# Nested array
+s::teams[0].name: Frontend
+s::teams[0].members[0]: Alice
+s::teams[0].members[1]: Charlie
+
+s::teams[1].name: Backend
+s::teams[1].members[0]: Bob
+s::teams[1].members[1]: David
+

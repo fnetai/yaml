@@ -1,0 +1,5 @@
+# Test 1: Basic Fragment - File URL
+# Testing simple path extraction from local file
+
+file: ../tests/fragment-basic.yaml
+

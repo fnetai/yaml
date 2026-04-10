@@ -1,0 +1,5 @@
+# Test 3: Nested Path Fragment
+# Testing deeply nested path extraction
+
+file: ../tests/fragment-nested.yaml
+

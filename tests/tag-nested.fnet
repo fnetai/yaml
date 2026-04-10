@@ -1,0 +1,8 @@
+# Test: Nested Tags
+# Testing t:: processor with nested tags
+
+file: ../tests/tag-nested.yaml
+tags:
+  - prod
+  - local
+

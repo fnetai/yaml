@@ -1,0 +1,19 @@
+name: "Test 5: Mixed Fragment Usage"
+description: "Testing both with and without fragments in same file"
+
+# Without fragment - backward compatibility test
+fullPerson: g::file://./test-data.yaml#/person
+fullConfig: g::file://./test-data.yaml#/config
+
+# With fragment - new feature
+personName: g::file://./test-data.yaml#/person/name
+dbHost: g::file://./test-data.yaml#/config/database/host
+
+# Mix of different sources
+localData: g::file://./test-data.yaml#/person/address
+remoteData: g::http://jsonplaceholder.typicode.com/users/1#/address
+
+# Combining fragments with setters
+s::combined.local.city: g::file://./test-data.yaml#/person/address/city
+s::combined.remote.city: g::http://jsonplaceholder.typicode.com/users/1#/address/city
+

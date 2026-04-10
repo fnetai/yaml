@@ -1,22 +1,86 @@
-name: yaml
+name: fnet-yaml
 
-npm::name: "@fnet/yaml"
+ai::name: "@fnet/yaml"
 
 s::repo.url: https://gitlab.com/fnetai/yaml.git
 
-input: g::file://./fnet/input.yaml
-commands: g::file://./fnet/commands.yaml
-
 features:
-  dts: true
   app: false
   cli: false
-  # cli:
-  #   s::fargs:enabled: true
+  s::runtime.type: bun
+  t::dev::cli: true
 
-  #   t::nd::enabled: false
-  #   t::nd::s::fargs:enabled: false
+commands:
+  build-dev:
+    description: Build the development version of the YAML module
+    usage: frun build-dev  
+    steps:
+      - fnode build --ftag dev
 
+  deploy:
+    description: Publish the package to the registry
+    usage: frun deploy
+    steps:
+      - fnode deploy
 
-  # s::runtime.type: "bun"
-  t::py::s::runtime.type: "python"
+  # === Test Categories ===
+
+  test-setters:
+    description: "Test s:: setter expressions (dot notation and array index)"
+    usage: frun test-setters
+    steps:
+      - fnode cli:dev --config setter-basic
+      - fnode cli:dev --config setter-array
+
+  test-getters:
+    description: "Test g:: / gtext:: / gbinary:: getter expressions across all protocols"
+    usage: frun test-getters
+    steps:
+      - fnode cli:dev --config getter-local
+      - fnode cli:dev --config getter-file
+      - fnode cli:dev --config getter-text
+      - fnode cli:dev --config getter-binary
+      - fnode cli:dev --config getter-npm
+
+  test-tags:
+    description: "Test t:: tag expressions for environment-specific filtering"
+    usage: frun test-tags
+    steps:
+      - fnode cli:dev --config tag-basic
+      - fnode cli:dev --config tag-nested
+
+  test-fragments:
+    description: Test URL fragment (#/path) extraction from file and http sources
+    usage: frun test-fragments
+    steps:
+      - fnode cli:dev --config fragment-basic
+      - fnode cli:dev --config fragment-array
+      - fnode cli:dev --config fragment-nested
+      - fnode cli:dev --config fragment-http
+      - fnode cli:dev --config fragment-mixed
+
+  test-combined:
+    description: Test combined usage of setters, getters, tags and fragments
+    usage: frun test-combined
+    steps:
+      - fnode cli:dev --config combined-all
+
+  test-misc:
+    description: Test property order preservation and error handling
+    usage: frun test-misc
+    steps:
+      - fnode cli:dev --config test-order
+      - fnode cli:dev --config error-handling
+
+  # === Run All Automated Tests ===
+
+  test-all:
+    description: Run all test categories sequentially
+    usage: frun test-all
+    steps:
+      - frun test-setters
+      - frun test-getters
+      - frun test-tags
+      - frun test-fragments
+      - frun test-combined
+      - frun test-misc

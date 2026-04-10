@@ -1,0 +1,5 @@
+# Test: Text Getter
+# Testing gtext:: processor
+
+file: ../tests/getter-text.yaml
+

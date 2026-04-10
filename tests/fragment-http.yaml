@@ -1,0 +1,23 @@
+name: "Test 4: HTTP URL Fragment"
+description: "Testing fragment extraction from HTTP/HTTPS URLs"
+
+# Test with JSONPlaceholder API
+# Extract specific user fields
+userId: g::http://jsonplaceholder.typicode.com/users/1#/id
+userName: g::http://jsonplaceholder.typicode.com/users/1#/name
+userEmail: g::http://jsonplaceholder.typicode.com/users/1#/email
+userPhone: g::http://jsonplaceholder.typicode.com/users/1#/phone
+
+# Extract nested address data
+userStreet: g::http://jsonplaceholder.typicode.com/users/1#/address/street
+userCity: g::http://jsonplaceholder.typicode.com/users/1#/address/city
+userZipcode: g::http://jsonplaceholder.typicode.com/users/1#/address/zipcode
+
+# Extract nested geo data
+userLat: g::http://jsonplaceholder.typicode.com/users/1#/address/geo/lat
+userLng: g::http://jsonplaceholder.typicode.com/users/1#/address/geo/lng
+
+# Extract company info
+companyName: g::http://jsonplaceholder.typicode.com/users/1#/company/name
+companyCatchPhrase: g::http://jsonplaceholder.typicode.com/users/1#/company/catchPhrase
+

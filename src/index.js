@@ -175,12 +175,18 @@ async function applySetter(obj, tags = []) {
         obj[tag.statement] = value; // Apply the setter        
       }
     } else if (match && match.processor === 's') {
-      const path = match.statement.split('.').map((segment) => {
-        const arrayIndexMatch = segment.match(/^\[(\d+)\]$/);
-        if (arrayIndexMatch) {
-          return parseInt(arrayIndexMatch[1], 10);
+      const path = match.statement.split('.').flatMap((segment) => {
+        // Handle "key[index]" notation e.g. "users[0]" → ['users', 0]
+        const parts = [];
+        const keyMatch = segment.match(/^([^\[]*)((?:\[\d+\])*)$/);
+        if (keyMatch) {
+          if (keyMatch[1]) parts.push(keyMatch[1]);
+          const indices = keyMatch[2].match(/\[(\d+)\]/g) || [];
+          indices.forEach(idx => parts.push(parseInt(idx.slice(1, -1), 10)));
+        } else {
+          parts.push(segment);
         }
-        return segment;
+        return parts.length ? parts : [segment];
       });
 
       let currentObj = obj;
@@ -194,12 +200,12 @@ async function applySetter(obj, tags = []) {
         } else {
           if (typeof path[i] === "number") {
             if (!currentObj[path[i]]) {
-              currentObj[path[i]] = Array.isArray(path[i + 1]) ? [] : {};
+              currentObj[path[i]] = typeof path[i + 1] === 'number' ? [] : {};
             }
             currentObj = currentObj[path[i]];
           } else {
             if (!currentObj[path[i]]) {
-              currentObj[path[i]] = Array.isArray(path[i + 1]) ? [] : {};
+              currentObj[path[i]] = typeof path[i + 1] === 'number' ? [] : {};
             }
             currentObj = currentObj[path[i]];
           }

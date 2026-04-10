@@ -1,0 +1,21 @@
+name: "Test 3: Nested Path Fragment"
+description: "Testing deeply nested object path extraction"
+
+# Extract nested config values
+dbHost: g::file://./test-data.yaml#/config/database/host
+dbPort: g::file://./test-data.yaml#/config/database/port
+dbName: g::file://./test-data.yaml#/config/database/name
+
+# Extract deeply nested credentials
+dbUsername: g::file://./test-data.yaml#/config/database/credentials/username
+dbPassword: g::file://./test-data.yaml#/config/database/credentials/password
+
+# Extract API endpoints
+apiVersion: g::file://./test-data.yaml#/config/api/version
+usersEndpoint: g::file://./test-data.yaml#/config/api/endpoints/users
+postsEndpoint: g::file://./test-data.yaml#/config/api/endpoints/posts
+
+# Extract entire nested objects
+databaseConfig: g::file://./test-data.yaml#/config/database
+apiConfig: g::file://./test-data.yaml#/config/api
+

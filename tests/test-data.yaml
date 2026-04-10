@@ -1,0 +1,38 @@
+person:
+  name: John Doe
+  age: 30
+  hobbies:
+    - reading
+    - swimming
+    - coding
+  address:
+    street: 123 Main St
+    city: New York
+    country: USA
+
+people:
+  - name: Alice
+    age: 25
+    role: Developer
+  - name: Bob
+    age: 35
+    role: Designer
+  - name: Charlie
+    age: 28
+    role: Manager
+
+config:
+  database:
+    host: localhost
+    port: 5432
+    name: myapp
+    credentials:
+      username: admin
+      password: secret123
+  api:
+    version: v1
+    timeout: 30
+    endpoints:
+      users: /api/v1/users
+      posts: /api/v1/posts
+

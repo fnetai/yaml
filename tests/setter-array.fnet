@@ -1,0 +1,5 @@
+# Test: Setter with Arrays
+# Testing s:: processor with array notation
+
+file: ../tests/setter-array.yaml
+

@@ -1,0 +1,19 @@
+name: "Test: Basic Setter"
+description: "Testing s:: processor with dot notation"
+
+# Simple setter - dot notation
+s::person.name: John Doe
+s::person.age: 30
+s::person.city: New York
+
+# Nested setter
+s::config.database.host: localhost
+s::config.database.port: 5432
+s::config.api.version: v1
+s::config.api.timeout: 30
+
+# Multiple levels
+s::app.settings.theme.color: blue
+s::app.settings.theme.mode: dark
+s::app.settings.language: en
+

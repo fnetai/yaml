@@ -1,0 +1,20 @@
+name: "Test: Binary Getter"
+description: "Testing gbinary:: processor for binary content"
+
+# Note: gbinary returns Buffer object for binary files
+# This is useful for images, PDFs, etc.
+
+# For testing, we'll use a small text file as binary
+# In real usage: logo: gbinary::file://./assets/logo.png
+
+# Create a test binary file reference
+# Since we can't easily test actual binary in YAML output,
+# we'll verify it returns a Buffer object
+# Using test-data.yaml as binary (will be read as Buffer)
+testBinary: gbinary::file://../tests/test-data.yaml
+
+# Note: In real usage, you would use this for actual binary files:
+# logo: gbinary::file://./assets/logo.png
+# pdf: gbinary::file://./documents/report.pdf
+# image: gbinary::http://example.com/image.png
+

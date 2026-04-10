@@ -1,0 +1,5 @@
+# Test: Binary Getter
+# Testing gbinary:: processor for binary content
+
+file: ../tests/getter-binary.yaml
+

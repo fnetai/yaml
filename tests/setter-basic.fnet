@@ -1,0 +1,4 @@
+# Test: Basic Setter
+# Testing s:: processor with dot notation
+
+file: ../tests/setter-basic.yaml

@@ -1,0 +1,18 @@
+name: "Test 2: Array Index Fragment"
+description: "Testing array index extraction with fragments"
+
+# Extract array elements by index
+firstPerson: g::file://./test-data.yaml#/people/0
+secondPerson: g::file://./test-data.yaml#/people/1
+thirdPerson: g::file://./test-data.yaml#/people/2
+
+# Extract specific fields from array elements
+firstPersonName: g::file://./test-data.yaml#/people/0/name
+secondPersonRole: g::file://./test-data.yaml#/people/1/role
+thirdPersonAge: g::file://./test-data.yaml#/people/2/age
+
+# Extract array from object
+allHobbies: g::file://./test-data.yaml#/person/hobbies
+firstHobby: g::file://./test-data.yaml#/person/hobbies/0
+secondHobby: g::file://./test-data.yaml#/person/hobbies/1
+

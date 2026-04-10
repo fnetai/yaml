@@ -1,0 +1,5 @@
+# Test 5: Mixed Usage
+# Testing fragment with and without fragments in same file
+
+file: ../tests/fragment-mixed.yaml
+

@@ -1,0 +1,11 @@
+name: "Test: Text Getter"
+description: "Testing gtext:: processor for raw text content"
+
+# Create a simple text file first for testing
+s::textContent: "This is a sample text content for testing gtext processor"
+
+# Note: gtext returns raw text, not parsed YAML
+# In real usage: textData: gtext::file://./readme.txt
+# For this test, we'll demonstrate the concept
+rawText: gtext::http://jsonplaceholder.typicode.com/posts/1
+

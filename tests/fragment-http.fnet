@@ -1,0 +1,5 @@
+# Test 4: HTTP URL Fragment
+# Testing fragment extraction from HTTP URLs
+
+file: ../tests/fragment-http.yaml
+

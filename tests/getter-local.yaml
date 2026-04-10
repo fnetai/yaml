@@ -1,0 +1,22 @@
+name: "Test: Local Getter"
+description: "Testing g:: processor with local paths and relative references"
+
+# Setup some data first
+s::data.user.name: John Doe
+s::data.user.age: 30
+s::data.user.email: john@example.com
+
+s::data.config.theme: dark
+s::data.config.language: en
+
+# Local getter - same level
+userName: g::data.user.name
+userAge: g::data.user.age
+
+# Nested getter
+theme: g::data.config.theme
+language: g::data.config.language
+
+# Get entire object
+fullUser: g::data.user
+fullConfig: g::data.config

@@ -1,0 +1,21 @@
+name: "Test: Basic Tags"
+description: "Testing t:: processor with environment-specific configs"
+
+# Common config (no tag)
+s::app.name: MyApp
+s::app.version: 1.0.0
+
+# Dev-specific config
+t::dev::s::database.host: localhost
+t::dev::s::database.port: 5432
+t::dev::s::api.url: http://localhost:3000
+
+# Prod-specific config (should be filtered out when tags=dev)
+t::prod::s::database.host: prod-db.example.com
+t::prod::s::database.port: 5432
+t::prod::s::api.url: https://api.example.com
+
+# Test-specific config (should be filtered out when tags=dev)
+t::test::s::database.host: test-db.example.com
+t::test::s::api.url: http://test-api.example.com
+

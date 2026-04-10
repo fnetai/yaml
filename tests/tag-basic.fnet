@@ -1,0 +1,7 @@
+# Test: Basic Tags
+# Testing t:: processor with environment tags
+
+file: ../tests/tag-basic.yaml
+tags:
+  - dev
+
