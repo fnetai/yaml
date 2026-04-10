@@ -110,7 +110,11 @@ function parseUrlWithFragment(urlString) {
   }
 }
 
-async function fetchHttpContent(httpURL, cwd, tags) {
+async function fetchHttpContent(httpURL, cwd, tags, cache) {
+  const cacheKey = `http:${httpURL}`;
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
   try {
     const response = await fetch(httpURL);
 
@@ -120,25 +124,34 @@ async function fetchHttpContent(httpURL, cwd, tags) {
 
     const text = await response.text();
 
-    const { parsed } = await fnetYaml({ content: text, cwd, tags });
+    const { parsed } = await fnetYaml({ content: text, cwd, tags }, undefined, cache);
 
-    return { parsed }
+    const result = { parsed };
+    cache.set(cacheKey, result);
+    return result;
   } catch (networkError) {
     console.error(`Error fetching content from ${httpURL}:`, networkError?.message);
   }
 }
 
 // Read the file content based on the filePath and current working directory (cwd)
-async function readFileContent(filePath, cwd, tags) {
+async function readFileContent(filePath, cwd, tags, cache) {
   const absolutePath = path.resolve(cwd, filePath);
+  const cacheKey = `file:${absolutePath}`;
 
-  const { parsed } = await fnetYaml({ file: absolutePath, tags });
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
 
-  return {
+  const { parsed } = await fnetYaml({ file: absolutePath, tags }, undefined, cache);
+
+  const result = {
     parsed,
     resolvedPath: absolutePath,
     resolvedDir: path.dirname(absolutePath),
   };
+  cache.set(cacheKey, result);
+  return result;
 }
 
 // Resolve a relative path based on the current path and the given relative path
@@ -237,7 +250,7 @@ async function applySetter(obj, tags = []) {
 }
 
 // Process and apply getters in the given object
-async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(), tags = []) {
+async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(), tags = [], cache = new Map()) {
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === "string") {
       const match = await expression({ expression: value });
@@ -246,17 +259,32 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
         if (match.statement.startsWith('file://') && isValidFileURL(match.statement)) {
           const { baseUrl, pathSegments } = parseUrlWithFragment(match.statement);
           const filePath = baseUrl.replace('file://', '');
+          const absoluteFilePath = path.resolve(cwd, filePath);
 
           if (match.processor === 'gtext') {
-            const fileContent = fs.readFileSync(path.resolve(cwd, filePath), 'utf-8');
+            const cacheKey = `gtext:file:${absoluteFilePath}`;
+            let fileContent;
+            if (cache.has(cacheKey)) {
+              fileContent = cache.get(cacheKey);
+            } else {
+              fileContent = fs.readFileSync(absoluteFilePath, 'utf-8');
+              cache.set(cacheKey, fileContent);
+            }
             obj[key] = fileContent;
           }
           else if (match.processor === 'gbinary') {
-            const fileContent = fs.readFileSync(path.resolve(cwd, filePath));  // Buffer olarak okur
-            obj[key] = fileContent;  // Direkt Buffer olarak atar
+            const cacheKey = `gbinary:file:${absoluteFilePath}`;
+            let fileContent;
+            if (cache.has(cacheKey)) {
+              fileContent = cache.get(cacheKey);
+            } else {
+              fileContent = fs.readFileSync(absoluteFilePath);
+              cache.set(cacheKey, fileContent);
+            }
+            obj[key] = fileContent;
           }
           else {
-            const fileContentResult = await readFileContent(filePath, cwd, tags);
+            const fileContentResult = await readFileContent(filePath, cwd, tags, cache);
             if (fileContentResult) {
               const { parsed: fileContentObj, resolvedDir } = fileContentResult;
 
@@ -267,7 +295,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
               } else {
                 obj[key] = fileContentObj;
                 await applySetter(obj[key], tags);
-                await applyGetter(obj[key], [], obj[key], resolvedDir, tags);
+                await applyGetter(obj[key], [], obj[key], resolvedDir, tags, cache);
               }
             }
           }
@@ -276,23 +304,37 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
           const { baseUrl, pathSegments } = parseUrlWithFragment(match.statement);
 
           if (match.processor === 'gtext') {
-            const response = await fetch(baseUrl);
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+            const cacheKey = `gtext:http:${baseUrl}`;
+            let fileContent;
+            if (cache.has(cacheKey)) {
+              fileContent = cache.get(cacheKey);
+            } else {
+              const response = await fetch(baseUrl);
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              fileContent = await response.text();
+              cache.set(cacheKey, fileContent);
             }
-            const fileContent = await response.text();
             obj[key] = fileContent;
           }
           else if (match.processor === 'gbinary') {
-            const response = await fetch(baseUrl);
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+            const cacheKey = `gbinary:http:${baseUrl}`;
+            let buffer;
+            if (cache.has(cacheKey)) {
+              buffer = cache.get(cacheKey);
+            } else {
+              const response = await fetch(baseUrl);
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              buffer = Buffer.from(await response.arrayBuffer());
+              cache.set(cacheKey, buffer);
             }
-            const buffer = await response.arrayBuffer();
-            obj[key] = Buffer.from(buffer);
+            obj[key] = buffer;
           }
           else {
-            const httpContentResult = await fetchHttpContent(baseUrl, cwd, tags);
+            const httpContentResult = await fetchHttpContent(baseUrl, cwd, tags, cache);
             if (httpContentResult) {
               const { parsed: httpContentObj } = httpContentResult;
 
@@ -303,7 +345,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
               } else {
                 obj[key] = httpContentObj;
                 await applySetter(obj[key], tags);
-                await applyGetter(obj[key], [], obj[key], cwd, tags);
+                await applyGetter(obj[key], [], obj[key], cwd, tags, cache);
               }
             }
           }
@@ -313,23 +355,37 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
           const unpkgUrl = getUnpkgUrl(baseNpmUrl);
           if (unpkgUrl && isValidHttpURL(unpkgUrl)) {
             if (match.processor === 'gtext') {
-              const response = await fetch(unpkgUrl);
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+              const cacheKey = `gtext:http:${unpkgUrl}`;
+              let fileContent;
+              if (cache.has(cacheKey)) {
+                fileContent = cache.get(cacheKey);
+              } else {
+                const response = await fetch(unpkgUrl);
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                fileContent = await response.text();
+                cache.set(cacheKey, fileContent);
               }
-              const fileContent = await response.text();
               obj[key] = fileContent;
             }
             else if (match.processor === 'gbinary') {
-              const response = await fetch(unpkgUrl);
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+              const cacheKey = `gbinary:http:${unpkgUrl}`;
+              let buffer;
+              if (cache.has(cacheKey)) {
+                buffer = cache.get(cacheKey);
+              } else {
+                const response = await fetch(unpkgUrl);
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                buffer = Buffer.from(await response.arrayBuffer());
+                cache.set(cacheKey, buffer);
               }
-              const buffer = await response.arrayBuffer();
-              obj[key] = Buffer.from(buffer);
+              obj[key] = buffer;
             }
             else {
-              const httpContentResult = await fetchHttpContent(unpkgUrl, cwd, tags);
+              const httpContentResult = await fetchHttpContent(unpkgUrl, cwd, tags, cache);
               if (httpContentResult) {
                 const { parsed: httpContentObj } = httpContentResult;
 
@@ -340,7 +396,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
                 } else {
                   obj[key] = httpContentObj;
                   await applySetter(obj[key], tags);
-                  await applyGetter(obj[key], [], obj[key], cwd, tags);
+                  await applyGetter(obj[key], [], obj[key], cwd, tags, cache);
                 }
               }
             }
@@ -392,7 +448,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
         }
       }
     } else if (typeof value === 'object' && value !== null) {
-      await applyGetter(value, currentPath.concat([key]), root, cwd, tags);
+      await applyGetter(value, currentPath.concat([key]), root, cwd, tags, cache);
     }
   }
 }
@@ -416,11 +472,14 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
  * Processes the provided YAML content or file with optional tag filtering.
  * @param {Input} args - The configuration object
  * @param {Object} [context] - Additional context object (currently unused)
+ * @param {Map} [cache] - Internal session cache for deduplicating URL fetches (passed recursively)
  * @returns {Promise<Output>} Processed YAML result
  * @throws {Error} When neither content nor file is provided
  * @throws {Error} When specified file doesn't exist
  */
-async function fnetYaml({ content, file, tags = [], cwd = process.cwd() }, context) {
+async function fnetYaml({ content, file, tags = [], cwd = process.cwd() }, context, cache) {
+  // Create a new session cache for the root call; recursive calls reuse the same cache
+  if (!cache) cache = new Map();
   let parsed;
 
   // If file parameter is provided, read the file content
@@ -442,7 +501,7 @@ async function fnetYaml({ content, file, tags = [], cwd = process.cwd() }, conte
   parsed = parse(content);
 
   await applySetter(parsed, tags); // s:: processor with 't' tag support
-  await applyGetter(parsed, [], parsed, cwd, tags); // g:: processor
+  await applyGetter(parsed, [], parsed, cwd, tags, cache); // g:: processor
 
   return {
     raw: content,
