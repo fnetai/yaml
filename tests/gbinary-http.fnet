@@ -1,0 +1,4 @@
+# Test: gbinary:: with http:// protocol
+# Testing binary buffer reading from HTTP URLs
+
+file: ../tests/gbinary-http.yaml

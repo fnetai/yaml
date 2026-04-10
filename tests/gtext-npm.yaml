@@ -1,0 +1,5 @@
+name: "Test: gtext:: with npm:"
+description: "Testing gtext:: raw text reading from npm packages via unpkg"
+
+# Returns raw JSON string, not parsed
+rawPackageJson: gtext::npm:lodash@4.17.21/package.json

@@ -38,9 +38,16 @@ commands:
     steps:
       - fnode cli:dev --config getter-local
       - fnode cli:dev --config getter-file
+      - fnode cli:dev --config getter-relative
+      - fnode cli:dev --config getter-array-local
       - fnode cli:dev --config getter-text
       - fnode cli:dev --config getter-binary
       - fnode cli:dev --config getter-npm
+      - fnode cli:dev --config getter-recursive
+      - fnode cli:dev --config gtext-file
+      - fnode cli:dev --config gtext-npm
+      - fnode cli:dev --config gbinary-http
+      - fnode cli:dev --config gbinary-npm
 
   test-tags:
     description: "Test t:: tag expressions for environment-specific filtering"
@@ -58,6 +65,7 @@ commands:
       - fnode cli:dev --config fragment-nested
       - fnode cli:dev --config fragment-http
       - fnode cli:dev --config fragment-mixed
+      - fnode cli:dev --config fragment-bracket
 
   test-combined:
     description: Test combined usage of setters, getters, tags and fragments

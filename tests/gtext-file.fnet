@@ -1,0 +1,4 @@
+# Test: gtext:: with file:// protocol
+# Testing raw text reading from local files
+
+file: ../tests/gtext-file.yaml

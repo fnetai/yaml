@@ -1,0 +1,4 @@
+# Test: Getter with Array Notation in Local Paths
+# Testing g::users[0].name consistency with s::users[0].name
+
+file: ../tests/getter-array-local.yaml

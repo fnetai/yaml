@@ -1,0 +1,10 @@
+name: "Test: Fragment Bracket Notation"
+description: "Testing [0] bracket notation in fragments - consistency with setter/getter"
+
+# Slash style (existing standard)
+slashStyle: g::file://./test-data.yaml#/people/0/name
+
+# Bracket style (consistency with s:: and g:: notation)
+bracketStyle: g::file://./test-data.yaml#/people[0]/name
+bracketNested: g::file://./test-data.yaml#/people[1]/role
+deepBracket: g::file://./test-data.yaml#/person/hobbies[0]

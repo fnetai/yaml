@@ -1,0 +1,12 @@
+name: "Test: Getter Array Notation in Local Paths"
+description: "Testing g::users[0].name consistency with s::users[0].name setter"
+
+s::users[0].name: Alice
+s::users[0].role: Developer
+s::users[1].name: Bob
+s::users[1].role: Designer
+
+# [0] bracket notation in getter local paths
+firstName: g::users[0].name
+firstRole: g::users[0].role
+secondName: g::users[1].name

@@ -1,0 +1,5 @@
+name: "Test: gtext:: with file://"
+description: "Testing gtext:: raw text reading from local files"
+
+# Returns raw text string, not parsed YAML
+rawYaml: gtext::file://./test-data.yaml

@@ -1,0 +1,4 @@
+# Test: gtext:: with npm: protocol
+# Testing raw text reading from npm packages via unpkg
+
+file: ../tests/gtext-npm.yaml

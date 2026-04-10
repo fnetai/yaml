@@ -1,0 +1,4 @@
+# Test: Fragment with Bracket Array Notation
+# Testing [0] bracket syntax in fragments for consistency with setter/getter
+
+file: ../tests/fragment-bracket.yaml

@@ -1,0 +1,4 @@
+s::app.name: RecursiveApp
+s::app.version: 2.0.0
+title: g::app.name
+version: g::app.version

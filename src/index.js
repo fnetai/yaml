@@ -84,11 +84,23 @@ function parseUrlWithFragment(urlString) {
 
     let pathSegments = null;
     if (fragment && fragment.startsWith('/')) {
-      pathSegments = fragment.substring(1).split('/').map(segment => {
-        // Handle array index notation
-        const arrayIndexMatch = segment.match(/^(\d+)$/);
-        return arrayIndexMatch ? parseInt(arrayIndexMatch[1], 10) : segment;
-      }).filter(segment => segment !== ''); // Remove empty segments
+      pathSegments = fragment.substring(1).split('/').flatMap(segment => {
+        if (segment === '') return [];
+        // Handle standalone index: /people/0
+        const indexMatch = segment.match(/^(\d+)$/);
+        if (indexMatch) return [parseInt(indexMatch[1], 10)];
+        // Handle bracket notation within segment: /people[0] or /people[0]/name
+        const parts = [];
+        const keyMatch = segment.match(/^([^\[]*)((?:\[\d+\])*)$/);
+        if (keyMatch) {
+          if (keyMatch[1]) parts.push(keyMatch[1]);
+          const indices = keyMatch[2].match(/\[(\d+)\]/g) || [];
+          indices.forEach(idx => parts.push(parseInt(idx.slice(1, -1), 10)));
+        } else {
+          parts.push(segment);
+        }
+        return parts.length ? parts : [segment];
+      });
     }
 
     return { baseUrl, pathSegments };
@@ -340,20 +352,32 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
             const relativeSegments = match.statement.split('/');
             paths = getRealPath(currentPath, relativeSegments);
           } else {
-            paths = match.statement.split('.').map((segment) => {
-              const arrayIndexMatch = segment.match(/^\[(\d+)\]$/);
-              if (arrayIndexMatch) {
-                return parseInt(arrayIndexMatch[1], 10);
+            paths = match.statement.split('.').flatMap((segment) => {
+              // Handle "key[index]" notation e.g. "users[0]" → ['users', 0]
+              const parts = [];
+              const keyMatch = segment.match(/^([^\[]*)((?:\[\d+\])*)$/);
+              if (keyMatch) {
+                if (keyMatch[1]) parts.push(keyMatch[1]);
+                const indices = keyMatch[2].match(/\[(\d+)\]/g) || [];
+                indices.forEach(idx => parts.push(parseInt(idx.slice(1, -1), 10)));
+              } else {
+                parts.push(segment);
               }
-              return segment;
+              return parts.length ? parts : [segment];
             });
           }
 
           const expandedPaths = paths.reduce((acc, cur) => {
-            cur.split('.').forEach((segment) => {
-              const arrayIndexMatch = segment.match(/^\[(\d+)\]$/);
-              if (arrayIndexMatch) {
-                acc.push(parseInt(arrayIndexMatch[1], 10));
+            if (typeof cur === 'number') {
+              acc.push(cur);
+              return acc;
+            }
+            cur.toString().split('.').flatMap((segment) => {
+              const keyMatch = segment.match(/^([^\[]*)((?:\[\d+\])*)$/);
+              if (keyMatch) {
+                if (keyMatch[1]) acc.push(keyMatch[1]);
+                const indices = keyMatch[2].match(/\[(\d+)\]/g) || [];
+                indices.forEach(idx => acc.push(parseInt(idx.slice(1, -1), 10)));
               } else {
                 acc.push(segment);
               }

@@ -1,0 +1,4 @@
+# Test: Relative Path Getter (../)
+# Testing g::../ to traverse up one level in nested objects
+
+file: ../tests/getter-relative.yaml

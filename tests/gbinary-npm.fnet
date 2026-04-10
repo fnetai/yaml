@@ -1,0 +1,4 @@
+# Test: gbinary:: with npm: protocol
+# Testing binary buffer reading from npm packages via unpkg
+
+file: ../tests/gbinary-npm.yaml

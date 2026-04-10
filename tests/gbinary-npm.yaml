@@ -1,0 +1,5 @@
+name: "Test: gbinary:: with npm:"
+description: "Testing gbinary:: Buffer reading from npm packages via unpkg"
+
+# Returns Buffer object
+binaryData: gbinary::npm:lodash@4.17.21/package.json

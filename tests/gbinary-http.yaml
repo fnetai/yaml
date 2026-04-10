@@ -1,0 +1,5 @@
+name: "Test: gbinary:: with http://"
+description: "Testing gbinary:: Buffer reading from HTTP URLs"
+
+# Returns Buffer object
+binaryData: gbinary::https://unpkg.com/lodash@4.17.21/package.json

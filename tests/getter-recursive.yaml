@@ -1,0 +1,6 @@
+name: "Test: Recursive Expression Processing"
+description: "Testing that s:: and g:: inside a loaded file are also processed"
+
+# test-data-with-expressions.yaml contains its own s:: and g:: expressions
+# which should be resolved when loaded
+loaded: g::file://./test-data-with-expressions.yaml

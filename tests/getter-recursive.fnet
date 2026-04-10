@@ -1,0 +1,4 @@
+# Test: Recursive Expression Processing in Loaded Files
+# Testing that expressions inside fetched files are also processed
+
+file: ../tests/getter-recursive.yaml

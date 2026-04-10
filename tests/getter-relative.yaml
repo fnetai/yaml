@@ -1,0 +1,11 @@
+name: "Test: Relative Path Getter"
+description: "Testing g::../ to go one level up in nested objects"
+
+s::city: "New York"
+s::country: "USA"
+
+person:
+  name: "John"
+  # go up one level to root, then read city and country
+  location: g::../city
+  nationality: g::../country
