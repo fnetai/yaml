@@ -2,7 +2,7 @@ name: fnet-yaml
 
 ai::name: "@fnet/yaml"
 
-s::repo.url: https://gitlab.com/fnetai/yaml.git
+s::repo.url: https://github.com/fnetai/yaml.git
 
 features:
   app: false
