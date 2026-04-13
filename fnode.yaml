@@ -7,7 +7,6 @@ s::repo.url: https://github.com/fnetai/yaml.git
 features:
   app: false
   cli: false
-  s::runtime.type: bun
   t::dev::cli: true
 
 commands:
