@@ -118,23 +118,58 @@ function parseUrlWithFragment(urlString) {
 
 // Extract a fragment path from parsed YAML content.
 // A trailing `*` segment means "return all values from this object/array target".
+// A trailing `{a,b}` segment expands to values from multiple immediate child keys.
+// A trailing glob segment such as `comment_*` expands to matching immediate child values.
 function extractFragmentValue(source, pathSegments) {
   if (!pathSegments || pathSegments.length === 0) return source;
 
-  const wildcardIndex = pathSegments.indexOf('*');
-  if (wildcardIndex !== -1) {
-    if (wildcardIndex !== pathSegments.length - 1) return null;
+  const expansionIndex = pathSegments.findIndex(segment =>
+    typeof segment === 'string' && (hasBraceExpansion(segment) || segment.includes('*'))
+  );
+
+  if (expansionIndex !== -1) {
+    if (expansionIndex !== pathSegments.length - 1) return null;
 
     const parentPath = pathSegments.slice(0, -1);
     const target = parentPath.length > 0 ? getValue(source, parentPath) : source;
+    const expansion = pathSegments[pathSegments.length - 1];
 
-    if (Array.isArray(target)) return target;
-    if (isPlainObject(target)) return Object.values(target);
+    if (hasBraceExpansion(expansion)) {
+      if (target === undefined || target === null) return null;
+      return expandBraceKeys(expansion).map(childKey => {
+        const childValue = getValue(target, [childKey]);
+        return childValue !== undefined ? childValue : null;
+      });
+    }
+
+    if (Array.isArray(target) && expansion === '*') return target;
+    if (isPlainObject(target)) {
+      const matcher = globToRegExp(expansion);
+      return Object.keys(target).filter(key => matcher.test(key)).map(key => target[key]);
+    }
+
     return null;
   }
 
   const extractedValue = getValue(source, pathSegments);
   return extractedValue !== undefined ? extractedValue : null;
+}
+
+function hasBraceExpansion(segment) {
+  return /\{[^{}]+\}/.test(segment);
+}
+
+function expandBraceKeys(segment) {
+  const match = segment.match(/^(.*)\{([^{}]+)\}(.*)$/);
+  if (!match) return [segment];
+
+  const [, prefix, body, suffix] = match;
+  return body.split(',').map(part => `${prefix}${part.trim()}${suffix}`);
+}
+
+function globToRegExp(pattern) {
+  const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^${escaped.replace(/\*/g, '[^/]*')}$`);
 }
 
 async function fetchHttpContent(httpURL, cwd, tags, cache) {

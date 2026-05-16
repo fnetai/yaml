@@ -1,0 +1,27 @@
+name: "Test: Multi Pointer Fragment"
+description: "Testing brace expansion and glob matching in URL fragments"
+
+bracePermissions: g::file://./permissions-ticket.yaml#/{create,list,get,update}
+braceFirstName: g::bracePermissions[0].name
+braceFourthMethod: g::bracePermissions[3].method
+
+globPermissions: g::file://./permissions-ticket.yaml#/comment_*
+globFirstName: g::globPermissions[0].name
+globFourthMethod: g::globPermissions[3].method
+
+nestedBracePermissions: g::file://./permissions-ticket.yaml#/group/{create,update}
+nestedBraceSecondName: g::nestedBracePermissions[1].name
+
+nestedGlobPermissions: g::file://./permissions-ticket.yaml#/group/comment_*
+nestedGlobSecondName: g::nestedGlobPermissions[1].name
+
+missingBracePermissions: g::file://./permissions-ticket.yaml#/{create,missing}
+missingBraceSecond: g::missingBracePermissions[1]
+
+noMatchGlobPermissions: g::file://./permissions-ticket.yaml#/missing_*
+
+push::rbac.permissions:
+  - g::file://./permissions-ticket.yaml#/{create,list,get,update}
+  - g::file://./permissions-ticket.yaml#/comment_*
+  - name: ticket.audit
+    method: GET

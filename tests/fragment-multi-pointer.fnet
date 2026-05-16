@@ -1,0 +1,4 @@
+# Test: Multi Pointer Fragment
+# Testing brace expansion and glob matching in URL fragments
+
+file: ../tests/fragment-multi-pointer.yaml

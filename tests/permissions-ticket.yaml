@@ -1,0 +1,45 @@
+create:
+  name: ticket.create
+  method: POST
+
+list:
+  name: ticket.list
+  method: GET
+
+get:
+  name: ticket.get
+  method: GET
+
+update:
+  name: ticket.update
+  method: PATCH
+
+comment_create:
+  name: ticket.comment.create
+  method: POST
+
+comment_list:
+  name: ticket.comment.list
+  method: GET
+
+comment_get:
+  name: ticket.comment.get
+  method: GET
+
+comment_update:
+  name: ticket.comment.update
+  method: PATCH
+
+group:
+  create:
+    name: grouped.ticket.create
+    method: POST
+  update:
+    name: grouped.ticket.update
+    method: PATCH
+  comment_create:
+    name: grouped.ticket.comment.create
+    method: POST
+  comment_list:
+    name: grouped.ticket.comment.list
+    method: GET

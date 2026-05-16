@@ -165,6 +165,8 @@ Supported styles:
 - slash style: `#/people/0/name`
 - bracket style: `#/people[0]/name`
 - wildcard value spread: `#/*` or `#/permissions/*`
+- brace expansion: `#/{create,list,get}` or `#/permissions/{create,update}`
+- child-key glob matching: `#/comment_*` or `#/permissions/comment_*`
 
 Examples:
 
@@ -173,6 +175,8 @@ dbHost: g::file://./config.yaml#/database/host
 firstUser: g::https://example.com/users.yaml#/people/0
 firstUserName: g::file://./users.yaml#/people[0]/name
 permissionValues: g::file://./permissions.yaml#/*
+selectedPermissions: g::file://./permissions.yaml#/{create,list,get}
+commentPermissions: g::file://./permissions.yaml#/comment_*
 pkgValue: g::npm:@scope/pkg@1.0.0/config.yaml#/app/theme
 ```
 
@@ -188,6 +192,37 @@ update: { name: financing.update }
 push::permissions:
   - g::file://./permissions.yaml#/*
 ```
+
+Brace expansion returns selected child values in the order listed.
+
+```yaml
+# permissions.yaml
+create: { name: ticket.create }
+list: { name: ticket.list }
+get: { name: ticket.get }
+update: { name: ticket.update }
+
+# rbac.yaml
+push::permissions:
+  - g::file://./permissions.yaml#/{create,list,get,update}
+```
+
+Glob fragments match immediate child keys and return matching values in source key
+order. `*` matches any sequence of characters within one path segment.
+
+```yaml
+# permissions.yaml
+comment_create: { name: ticket.comment.create }
+comment_list: { name: ticket.comment.list }
+comment_get: { name: ticket.comment.get }
+
+# rbac.yaml
+push::permissions:
+  - g::file://./permissions.yaml#/comment_*
+```
+
+Both forms also work below a nested object, for example
+`#/ticket/{create,update}` and `#/ticket/comment_*`.
 
 ## `t::` — Tag filtering
 
