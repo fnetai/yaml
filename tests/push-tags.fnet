@@ -1,0 +1,6 @@
+# Test: Push Tags
+# Testing push:: processor combined with t:: tag filtering
+
+file: ../tests/push-tags.yaml
+tags:
+  - dev

@@ -10,6 +10,9 @@ import { URL } from 'node:url';
 // t:: means tag
 // Expression in object value
 // g:: means getter
+// Expression in object key for composition
+// merge:: means deep merge stack into object path
+// push:: means append stack items into array path
 
 // Sample setters
 // s::person.name
@@ -41,6 +44,9 @@ import { URL } from 'node:url';
 // @ai: tag can be used in object keys
 // @ai: any setter or tagger is being removed from object key after they are being processed
 // @ai: any getter is being replaced with the value behind the getter processor protocol
+
+const MERGE_PREFIX = 'merge::';
+const PUSH_PREFIX = 'push::';
 
 // Regex pattern to detect relative paths like "./" and "../"
 const relativePathPattern = /^(\.\/|(\.\.\/)+).*$/;
@@ -197,7 +203,17 @@ async function applySetter(obj, tags = []) {
       }
       else {
         delete obj[key]; // Remove the tag entry
-        obj[tag.statement] = value; // Apply the setter        
+        if (
+          (tag.statement.startsWith(MERGE_PREFIX) || tag.statement.startsWith(PUSH_PREFIX)) &&
+          Object.prototype.hasOwnProperty.call(obj, tag.statement)
+        ) {
+          const existingValue = obj[tag.statement];
+          const existingSources = Array.isArray(existingValue) ? existingValue : [existingValue];
+          const incomingSources = Array.isArray(value) ? value : [value];
+          obj[tag.statement] = [...existingSources, ...incomingSources];
+        } else {
+          obj[tag.statement] = value; // Apply the setter
+        }
       }
     } else if (match && match.processor === 's') {
       const path = match.statement.split('.').flatMap((segment) => {
@@ -453,6 +469,166 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
   }
 }
 
+// Check whether a value is a plain object (not array, Date, Buffer, etc.)
+function isPlainObject(v) {
+  return v !== null && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Date) && !(Buffer.isBuffer(v));
+}
+
+// Deep merge `source` into `target`. Primitives and arrays are replaced.
+function deepMerge(target, source) {
+  if (isPlainObject(target) && isPlainObject(source)) {
+    for (const key of Object.keys(source)) {
+      if (isPlainObject(source[key])) {
+        if (!isPlainObject(target[key])) target[key] = {};
+        deepMerge(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    }
+    return target;
+  }
+  // For primitives and arrays: source wins
+  return source;
+}
+
+// Resolve a setter-like path string into an array of segments (supports bracket notation)
+function resolvePathSegments(pathStr) {
+  return pathStr.split('.').flatMap((segment) => {
+    const parts = [];
+    const keyMatch = segment.match(/^([^\[]*)((?:\[\d+\])*)$/);
+    if (keyMatch) {
+      if (keyMatch[1]) parts.push(keyMatch[1]);
+      const indices = keyMatch[2].match(/\[(\d+)\]/g) || [];
+      indices.forEach(idx => parts.push(parseInt(idx.slice(1, -1), 10)));
+    } else {
+      parts.push(segment);
+    }
+    return parts.length ? parts : [segment];
+  });
+}
+
+function getOrCreatePathParent(root, path) {
+  let current = root;
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const segment = path[i];
+    const nextSegment = path[i + 1];
+
+    if (current[segment] === undefined || current[segment] === null || typeof current[segment] !== 'object') {
+      current[segment] = typeof nextSegment === 'number' ? [] : {};
+    }
+
+    current = current[segment];
+  }
+
+  return { parent: current, key: path[path.length - 1] };
+}
+
+function normalizeStackSources(value) {
+  return Array.isArray(value) ? value : [value];
+}
+
+function assignMergedValue(obj, pathStr, merged) {
+  if (pathStr === '' || pathStr === '/') {
+    if (isPlainObject(merged)) {
+      deepMerge(obj, merged);
+    }
+    return;
+  }
+
+  const path = resolvePathSegments(pathStr);
+  const { parent, key } = getOrCreatePathParent(obj, path);
+
+  if (isPlainObject(merged) && isPlainObject(parent[key])) {
+    deepMerge(parent[key], merged);
+  } else {
+    parent[key] = merged;
+  }
+}
+
+function assignPushedValues(obj, pathStr, items) {
+  if (pathStr === '' || pathStr === '/') {
+    if (Array.isArray(obj)) {
+      obj.push(...items);
+    }
+    return;
+  }
+
+  const path = resolvePathSegments(pathStr);
+  const { parent, key } = getOrCreatePathParent(obj, path);
+
+  if (!Array.isArray(parent[key])) {
+    parent[key] = [];
+  }
+
+  parent[key].push(...items);
+}
+
+// Process merge:: expressions in the object tree.
+// Merge runs *after* getters, so values may contain resolved objects/arrays.
+async function applyMerge(obj) {
+  const mergeKeys = [];
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith(MERGE_PREFIX)) {
+      mergeKeys.push(key);
+    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+      await applyMerge(obj[key]);
+    }
+  }
+
+  for (const key of mergeKeys) {
+    const pathStr = key.slice(MERGE_PREFIX.length);
+    const value = obj[key];
+    delete obj[key];
+
+    const sources = normalizeStackSources(value);
+    let merged;
+
+    for (const src of sources) {
+      if (merged === undefined) {
+        if (isPlainObject(src)) {
+          merged = { ...src };
+        } else {
+          merged = src;
+        }
+        continue;
+      }
+
+      if (isPlainObject(merged) && isPlainObject(src)) {
+          deepMerge(merged, src);
+      } else {
+        merged = src;
+      }
+    }
+
+    if (merged !== undefined) {
+      assignMergedValue(obj, pathStr, merged);
+    }
+  }
+}
+
+// Process push:: expressions in the object tree.
+// Push runs after getters and merges, so values may contain resolved arrays/objects.
+async function applyPush(obj) {
+  const pushKeys = [];
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith(PUSH_PREFIX)) {
+      pushKeys.push(key);
+    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+      await applyPush(obj[key]);
+    }
+  }
+
+  for (const key of pushKeys) {
+    const pathStr = key.slice(PUSH_PREFIX.length);
+    const value = obj[key];
+    delete obj[key];
+
+    const items = normalizeStackSources(value).flatMap((entry) => Array.isArray(entry) ? entry : [entry]);
+    assignPushedValues(obj, pathStr, items);
+  }
+}
+
 /**
  * @typedef {Object} Input
  * @property {string} [content] - The YAML content to be processed
@@ -502,6 +678,8 @@ async function fnetYaml({ content, file, tags = [], cwd = process.cwd() }, conte
 
   await applySetter(parsed, tags); // s:: processor with 't' tag support
   await applyGetter(parsed, [], parsed, cwd, tags, cache); // g:: processor
+  await applyMerge(parsed); // merge:: processor (runs after getters)
+  await applyPush(parsed); // push:: processor (runs after merges)
 
   return {
     raw: content,

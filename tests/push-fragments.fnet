@@ -1,0 +1,4 @@
+# Test: Push Fragments
+# Testing push:: processor with array getters and object values
+
+file: ../tests/push-fragments.yaml

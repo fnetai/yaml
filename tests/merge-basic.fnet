@@ -1,0 +1,4 @@
+# Test: Basic Merge
+# Testing merge:: processor with inline object merge
+
+file: ../tests/merge-basic.yaml

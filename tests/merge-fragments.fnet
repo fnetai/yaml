@@ -1,0 +1,4 @@
+# Test: Merge Fragments
+# Testing merge:: processor with file fragment getters
+
+file: ../tests/merge-fragments.yaml

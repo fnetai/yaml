@@ -72,6 +72,24 @@ commands:
     steps:
       - fnode cli:dev --config combined-all
 
+  test-merge:
+    description: "Test merge:: processor with inline, stack, tag, fragment and root merges"
+    usage: frun test-merge
+    steps:
+      - fnode cli:dev --config merge-basic
+      - fnode cli:dev --config merge-stack
+      - fnode cli:dev --config merge-tags
+      - fnode cli:dev --config merge-fragments
+      - fnode cli:dev --config merge-root
+
+  test-push:
+    description: "Test push:: processor with scalar, fragment and tag-based array stacking"
+    usage: frun test-push
+    steps:
+      - fnode cli:dev --config push-basic
+      - fnode cli:dev --config push-fragments
+      - fnode cli:dev --config push-tags
+
   test-misc:
     description: Test property order preservation and error handling
     usage: frun test-misc
@@ -90,4 +108,6 @@ commands:
       - frun test-tags
       - frun test-fragments
       - frun test-combined
+      - frun test-merge
+      - frun test-push
       - frun test-misc

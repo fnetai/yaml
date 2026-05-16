@@ -1,0 +1,22 @@
+name: "Test: Merge Tags"
+description: "Testing merge:: processor combined with t:: tag filtering"
+
+merge::app:
+  - name: base-app
+    env: base
+  - debug: false
+
+t::dev::merge::app:
+  - env: development
+    debug: true
+    features:
+      hotReload: true
+
+t::prod::merge::app:
+  - env: production
+    debug: false
+
+expectedName: g::app.name
+expectedEnv: g::app.env
+expectedDebug: g::app.debug
+expectedHotReload: g::app.features.hotReload

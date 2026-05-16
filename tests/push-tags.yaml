@@ -1,0 +1,18 @@
+name: "Test: Push Tags"
+description: "Testing push:: processor combined with t:: tag filtering"
+
+push::app.plugins:
+  - core
+  - auth
+
+t::dev::push::app.plugins:
+  - devtools
+  - mock-api
+
+t::prod::push::app.plugins:
+  - sentry
+
+expectedFirst: g::app.plugins[0]
+expectedSecond: g::app.plugins[1]
+expectedThird: g::app.plugins[2]
+expectedFourth: g::app.plugins[3]

@@ -1,0 +1,4 @@
+# Test: Basic Push
+# Testing push:: processor with scalar values and nested arrays
+
+file: ../tests/push-basic.yaml

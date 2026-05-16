@@ -1,0 +1,25 @@
+name: "Test: Merge Stack"
+description: "Testing merge:: processor with deep stack merge"
+
+merge::app:
+  - name: base-app
+    database:
+      host: localhost
+      port: 5432
+      ssl: false
+    features:
+      auth: false
+      billing: false
+  - database:
+      host: prod-db
+      ssl: true
+  - features:
+      auth: true
+  - name: stack-app
+
+expectedName: g::app.name
+expectedHost: g::app.database.host
+expectedPort: g::app.database.port
+expectedSsl: g::app.database.ssl
+authEnabled: g::app.features.auth
+billingEnabled: g::app.features.billing

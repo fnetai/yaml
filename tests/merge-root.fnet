@@ -1,0 +1,4 @@
+# Test: Merge Root
+# Testing merge::/ processor for root-level merge
+
+file: ../tests/merge-root.yaml

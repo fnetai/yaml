@@ -1,0 +1,14 @@
+name: "Test: Basic Push"
+description: "Testing push:: processor with scalar values and nested arrays"
+
+push::app.plugins:
+  - auth
+  - billing
+  -
+    - monitoring
+    - tracing
+
+expectedFirst: g::app.plugins[0]
+expectedSecond: g::app.plugins[1]
+expectedThird: g::app.plugins[2]
+expectedFourth: g::app.plugins[3]

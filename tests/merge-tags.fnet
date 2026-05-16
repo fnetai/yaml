@@ -1,0 +1,6 @@
+# Test: Merge Tags
+# Testing merge:: processor combined with t:: tag filtering
+
+file: ../tests/merge-tags.yaml
+tags:
+  - dev

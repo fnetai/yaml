@@ -1,0 +1,15 @@
+name: "Test: Merge Root"
+description: "Testing merge::/ processor for root-level merge"
+
+merge::/:
+  - app:
+      name: root-app
+      version: 1.0
+  - database:
+      host: localhost
+      port: 5432
+
+expectedAppName: g::app.name
+expectedAppVersion: g::app.version
+expectedDbHost: g::database.host
+expectedDbPort: g::database.port

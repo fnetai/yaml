@@ -1,0 +1,13 @@
+name: "Test: Push Fragments"
+description: "Testing push:: processor with array getters and object values"
+
+push::team.members:
+  - g::file://./test-data.yaml#/people
+  - name: Dana
+    age: 31
+    role: Analyst
+
+expectedFirstName: g::team.members[0].name
+expectedSecondRole: g::team.members[1].role
+expectedFourthName: g::team.members[3].name
+expectedFourthRole: g::team.members[3].role

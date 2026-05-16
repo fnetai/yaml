@@ -1,0 +1,13 @@
+name: "Test: Basic Merge"
+description: "Testing merge:: processor with inline object merge"
+
+merge::app:
+  - name: base-app
+    port: 3000
+    debug: false
+  - debug: true
+    port: 8080
+
+expectedName: g::app.name
+expectedPort: g::app.port
+expectedDebug: g::app.debug

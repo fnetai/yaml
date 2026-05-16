@@ -1,0 +1,4 @@
+# Test: Merge Stack
+# Testing merge:: processor with deep stack merge
+
+file: ../tests/merge-stack.yaml

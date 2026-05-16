@@ -1,0 +1,12 @@
+name: "Test: Merge Fragments"
+description: "Testing merge:: processor with file fragment getters"
+
+merge::app.config:
+  - g::file://./test-data.yaml#/config
+  - timeout: 60
+    retry: 3
+
+expectedHost: g::app.config.database.host
+expectedPort: g::app.config.database.port
+expectedTimeout: g::app.config.timeout
+expectedRetry: g::app.config.retry

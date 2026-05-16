@@ -1,12 +1,21 @@
-# Developer Guide for @fnet/yaml
+# Developer Guide for `@fnet/yaml`
 
 ## Overview
 
-The `@fnet/yaml` library is designed to enhance YAML processing capabilities by allowing developers to use expressions such as setters and getters directly within YAML keys and values. It supports reading from files, URLs, and even fetching content from npm packages. With these enhancements, developers can manage complex configurations across different environments by manipulating YAML data dynamically.
+`@fnet/yaml` is a YAML processor for Flownet-style configuration files.
+It extends plain YAML with expression-based processors that let you:
+
+- set values dynamically with `s::`
+- read values locally or from external sources with `g::`
+- read raw text with `gtext::`
+- read binary content with `gbinary::`
+- conditionally include sections with `t::`
+- deep-merge object stacks with `merge::`
+- append array stacks with `push::`
+
+It supports `file://`, `http://`, `https://`, and `npm:` sources.
 
 ## Installation
-
-To install the `@fnet/yaml` library, you can use either npm or yarn:
 
 ```bash
 npm install @fnet/yaml
@@ -18,116 +27,360 @@ or
 yarn add @fnet/yaml
 ```
 
-## Usage
+## Function Signature
 
-The library processes YAML content with special expression tags for dynamic data manipulation. Here's a guide on using the library:
-
-### Function Signature
-
-```typescript
+```ts
 type Input = {
-    content?: string;        // The YAML content to be processed
-    file?: string;          // The path to the YAML file to be processed
-    tags?: string[];        // Array of tags to filter content by (e.g., ['dev', 'prod'])
-    cwd?: string;          // Current working directory for resolving relative paths
+  content?: string;
+  file?: string;
+  tags?: string[];
+  cwd?: string;
 };
 
 type Output = {
-    raw: string;           // Original unprocessed YAML content
-    content: string;       // Processed YAML content as string
-    parsed: Object;        // Processed YAML content as JavaScript object
+  raw: string;
+  content: string;
+  parsed: object;
 };
 ```
 
-### Example Use Case
+## Basic Usage
 
-```javascript
+```js
 import yamlProcessor from '@fnet/yaml';
 
-(async () => {
-    const inputYaml = `
-        # Using a setter to update person name
-        s::person.name: John Doe
+const inputYaml = `
+s::app.name: demo
+t::prod::s::app.debug: false
+t::dev::s::app.debug: true
+config: g::file://./config.yaml#/app
+`;
 
-        # Using a getter to include content from another YAML file
-        profile: g::file://./additional-profile.yaml
+const result = await yamlProcessor({
+  content: inputYaml,
+  tags: ['prod'],
+});
 
-        # Using a tag to conditionally include data
-        t::prod::producer:
-            name: exampleProd
-    `;
-
-    try {
-        const { raw, content, parsed } = await yamlProcessor({ 
-            content: inputYaml, 
-            tags: ['prod'] 
-        });
-        
-        console.log('Original YAML:', raw);
-        console.log('Processed YAML:', content);
-        console.log('Parsed Object:', parsed);
-
-    } catch (error) {
-        console.error('Error processing YAML:', error);
-    }
-})();
+console.log(result.parsed);
 ```
 
-## Examples
+## Processing Order
 
-### Setting Values with Setters
+Expressions are processed in this order:
 
-Setters (`s::`) allow you to dynamically set values in your YAML structure:
+1. `s::` and `t::`
+2. `g::`, `gtext::`, `gbinary::`
+3. `merge::`
+4. `push::`
+
+This matters because `merge::` and `push::` can work with values already resolved by getters.
+
+## Supported Processors
+
+### `s::` — Setter
+
+Setters write values into object paths using dot and bracket notation.
 
 ```yaml
-s::settings.server.host: localhost
-s::settings.server.port: 8080
+s::person.name: John Doe
+s::person.age: 30
+s::users[0].role: Developer
+s::users[1].role: Designer
 ```
 
-### Getting Values with Getters
-
-Getters (`g::`) retrieve values from various sources:
+Result:
 
 ```yaml
-# Local file
-config: g::file://./config.yaml
-
-# HTTP(S) URL
-apiData: g::http://api.example.com/data.yaml
-
-# NPM package
-npmConfig: g::npm:@fnet/webauth@^0.1/config.yaml
+person:
+  name: John Doe
+  age: 30
+users:
+  - role: Developer
+  - role: Designer
 ```
 
-### Using Tags
+### `g::` — Getter
 
-Tags (`t::`) conditionally process sections based on the environment:
+Getters can read:
+
+- local values from the current parsed object
+- local files via `file://`
+- remote content via `http://` and `https://`
+- package files via `npm:`
+
+#### Local getters
 
 ```yaml
-t::dev::logLevel: debug
-t::prod::logLevel: error
+s::app.name: demo
+s::app.version: 1.0.0
+
+name: g::app.name
+version: g::app.version
 ```
 
-### Combining Features
-
-You can combine different features:
+Relative and root-style paths are also supported:
 
 ```yaml
-# Tag with setter
+s::city: Istanbul
+
+user:
+  profile:
+    city: g::../city
+
+rootCity: g::/city
+```
+
+#### File / HTTP / npm getters
+
+```yaml
+fileConfig: g::file://./config.yaml
+remoteConfig: g::https://example.com/config.yaml
+pkgConfig: g::npm:@fnet/webauth@^0.1/fnet/input.yaml
+```
+
+### `gtext::` — Raw text getter
+
+Returns the raw text payload without YAML parsing.
+
+```yaml
+readme: gtext::file://./README.md
+remoteText: gtext::https://example.com/message.txt
+```
+
+### `gbinary::` — Binary getter
+
+Returns a Node.js `Buffer`.
+
+```yaml
+logo: gbinary::file://./assets/logo.png
+archive: gbinary::https://example.com/archive.zip
+```
+
+## URL Fragments
+
+Structured getters (`g::`) support fragment extraction with `#`.
+
+Supported styles:
+
+- slash style: `#/people/0/name`
+- bracket style: `#/people[0]/name`
+
+Examples:
+
+```yaml
+dbHost: g::file://./config.yaml#/database/host
+firstUser: g::https://example.com/users.yaml#/people/0
+firstUserName: g::file://./users.yaml#/people[0]/name
+pkgValue: g::npm:@scope/pkg@1.0.0/config.yaml#/app/theme
+```
+
+## `t::` — Tag filtering
+
+Tags let you conditionally keep or discard YAML entries.
+
+```yaml
+t::dev::s::database.host: localhost
 t::prod::s::database.host: prod-db.example.com
-
-# Tag with getter
-t::dev::config: g::file://./dev-config.yaml
 ```
+
+With `tags: ['dev']`, only the `dev` entry is applied.
+
+Nested tags are supported:
+
+```yaml
+t::prod::t::local::s::logging.level: debug
+```
+
+This entry is applied only when both `prod` and `local` are active.
+
+## `merge::` — Deep object composition
+
+`merge::` is used for object stack composition.
+
+- objects are merged recursively
+- later items override earlier items
+- arrays are replaced, not concatenated
+- use `push::` when you want array append behavior
+
+```yaml
+merge::app:
+  - name: base-app
+    database:
+      host: localhost
+      port: 5432
+    features:
+      auth: false
+      billing: false
+  - database:
+      host: prod-db
+  - features:
+      auth: true
+```
+
+Result:
+
+```yaml
+app:
+  name: base-app
+  database:
+    host: prod-db
+    port: 5432
+  features:
+    auth: true
+    billing: false
+```
+
+### Root merge
+
+Use `merge::/` to merge into the document root.
+
+```yaml
+merge::/:
+  - app:
+      name: demo
+  - database:
+      host: localhost
+      port: 5432
+```
+
+### Merge with getters
+
+```yaml
+merge::app:
+  - g::file://./base.yaml#/app
+  - g::file://./prod.yaml#/app
+  - debug: true
+```
+
+### Merge with tags
+
+Base and tagged merge stacks can be combined:
+
+```yaml
+merge::app:
+  - name: base-app
+    env: base
+
+t::dev::merge::app:
+  - env: development
+    debug: true
+
+t::prod::merge::app:
+  - env: production
+    debug: false
+```
+
+## `push::` — Array composition
+
+`push::` appends items into an array path.
+
+- scalar values are appended as items
+- objects are appended as items
+- arrays are flattened one level and appended item-by-item
+
+```yaml
+push::app.plugins:
+  - auth
+  - billing
+  -
+    - monitoring
+    - tracing
+```
+
+Result:
+
+```yaml
+app:
+  plugins:
+    - auth
+    - billing
+    - monitoring
+    - tracing
+```
+
+### Push with getters
+
+```yaml
+push::team.members:
+  - g::file://./people.yaml#/members
+  - name: Dana
+    role: Analyst
+```
+
+### Push with tags
+
+```yaml
+push::app.plugins:
+  - core
+  - auth
+
+t::dev::push::app.plugins:
+  - devtools
+  - mock-api
+
+t::prod::push::app.plugins:
+  - sentry
+```
+
+## Combined Example
+
+```yaml
+s::defaults.region: eu-west-1
+
+merge::app:
+  - g::file://./base.yaml#/app
+  - g::file://./env/prod.yaml#/app
+  - region: g::defaults.region
+
+push::app.plugins:
+  - g::file://./base.yaml#/plugins
+  - monitoring
+  - tracing
+
+t::prod::s::app.debug: false
+t::dev::s::app.debug: true
+```
+
+## Supported Source Protocols
+
+| Protocol | Structured `g::` | `gtext::` | `gbinary::` |
+| --- | ---: | ---: | ---: |
+| local object path | yes | no | no |
+| `file://` | yes | yes | yes |
+| `http://` / `https://` | yes | yes | yes |
+| `npm:` | yes | yes | yes |
+
+Notes:
+
+- fragment extraction applies to structured `g::` getters
+- `npm:` sources are resolved through `unpkg.com`
+
+## Session Cache
+
+Within a single root parse session, repeated `file://`, `http://`, `https://`, and `npm:` reads are cached.
+
+That means if the same source is used multiple times, including with different fragments, the library avoids redundant reads/fetches and reuses the already resolved content.
 
 ## Error Handling
 
-The processor throws errors in these cases:
-- When neither content nor file is provided
-- When a specified file doesn't exist
-- When YAML parsing fails
-- When expression processing fails
+The processor throws or surfaces errors in cases such as:
+
+- missing `content` and `file`
+- non-existent local file paths
+- invalid YAML input
+- network failures for remote sources
+
+Fragment lookups that do not resolve return `null` for structured remote/file getter extraction.
+
+## Best Practices
+
+- use `merge::` for object configuration layers
+- use `push::` for array composition
+- use fragments to fetch only the part you need
+- use tags for environment overlays
+- prefer `gtext::` only when you need raw text
+- prefer `gbinary::` only when you need a `Buffer`
 
 ## Acknowledgement
 
-This library leverages the `yaml` library for YAML parsing and additional internal and external utilities for expression processing.
+`@fnet/yaml` is built on top of the `yaml` package and Flownet expression-processing conventions.
