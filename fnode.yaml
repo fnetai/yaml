@@ -56,7 +56,7 @@ commands:
       - fnode cli:dev --config tag-nested
 
   test-fragments:
-    description: Test URL fragment (#/path) extraction from file and http sources
+    description: Test URL fragment (#/path and #/*) extraction from file and http sources
     usage: frun test-fragments
     steps:
       - fnode cli:dev --config fragment-basic
@@ -65,6 +65,7 @@ commands:
       - fnode cli:dev --config fragment-http
       - fnode cli:dev --config fragment-mixed
       - fnode cli:dev --config fragment-bracket
+      - fnode cli:dev --config fragment-wildcard
 
   test-combined:
     description: Test combined usage of setters, getters, tags and fragments

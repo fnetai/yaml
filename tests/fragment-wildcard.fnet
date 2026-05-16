@@ -1,0 +1,4 @@
+# Test: Wildcard Fragment
+# Testing #/* object value extraction with getters and push::
+
+file: ../tests/fragment-wildcard.yaml

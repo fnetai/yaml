@@ -164,6 +164,7 @@ Supported styles:
 
 - slash style: `#/people/0/name`
 - bracket style: `#/people[0]/name`
+- wildcard value spread: `#/*` or `#/permissions/*`
 
 Examples:
 
@@ -171,7 +172,21 @@ Examples:
 dbHost: g::file://./config.yaml#/database/host
 firstUser: g::https://example.com/users.yaml#/people/0
 firstUserName: g::file://./users.yaml#/people[0]/name
+permissionValues: g::file://./permissions.yaml#/*
 pkgValue: g::npm:@scope/pkg@1.0.0/config.yaml#/app/theme
+```
+
+Wildcard fragments return all values from an object target. This is useful when a
+dictionary-style YAML file should become an array of values.
+
+```yaml
+# permissions.yaml
+create: { name: financing.create }
+update: { name: financing.update }
+
+# rbac.yaml
+push::permissions:
+  - g::file://./permissions.yaml#/*
 ```
 
 ## `t::` — Tag filtering
@@ -305,6 +320,14 @@ push::team.members:
   - g::file://./people.yaml#/members
   - name: Dana
     role: Analyst
+```
+
+Dictionary-style files can be appended with wildcard fragments:
+
+```yaml
+push::permissions:
+  - g::file://./permissions/financing.yaml#/*
+  - g::file://./permissions/invoicing.yaml#/*
 ```
 
 ### Push with tags

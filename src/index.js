@@ -116,6 +116,27 @@ function parseUrlWithFragment(urlString) {
   }
 }
 
+// Extract a fragment path from parsed YAML content.
+// A trailing `*` segment means "return all values from this object/array target".
+function extractFragmentValue(source, pathSegments) {
+  if (!pathSegments || pathSegments.length === 0) return source;
+
+  const wildcardIndex = pathSegments.indexOf('*');
+  if (wildcardIndex !== -1) {
+    if (wildcardIndex !== pathSegments.length - 1) return null;
+
+    const parentPath = pathSegments.slice(0, -1);
+    const target = parentPath.length > 0 ? getValue(source, parentPath) : source;
+
+    if (Array.isArray(target)) return target;
+    if (isPlainObject(target)) return Object.values(target);
+    return null;
+  }
+
+  const extractedValue = getValue(source, pathSegments);
+  return extractedValue !== undefined ? extractedValue : null;
+}
+
 async function fetchHttpContent(httpURL, cwd, tags, cache) {
   const cacheKey = `http:${httpURL}`;
   if (cache.has(cacheKey)) {
@@ -306,8 +327,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
 
               // Apply path extraction if fragment is provided
               if (pathSegments && pathSegments.length > 0) {
-                const extractedValue = getValue(fileContentObj, pathSegments);
-                obj[key] = extractedValue !== undefined ? extractedValue : null;
+                obj[key] = extractFragmentValue(fileContentObj, pathSegments);
               } else {
                 obj[key] = fileContentObj;
                 await applySetter(obj[key], tags);
@@ -356,8 +376,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
 
               // Apply path extraction if fragment is provided
               if (pathSegments && pathSegments.length > 0) {
-                const extractedValue = getValue(httpContentObj, pathSegments);
-                obj[key] = extractedValue !== undefined ? extractedValue : null;
+                obj[key] = extractFragmentValue(httpContentObj, pathSegments);
               } else {
                 obj[key] = httpContentObj;
                 await applySetter(obj[key], tags);
@@ -407,8 +426,7 @@ async function applyGetter(obj, currentPath = [], root = obj, cwd = process.cwd(
 
                 // Apply path extraction if fragment is provided
                 if (pathSegments && pathSegments.length > 0) {
-                  const extractedValue = getValue(httpContentObj, pathSegments);
-                  obj[key] = extractedValue !== undefined ? extractedValue : null;
+                  obj[key] = extractFragmentValue(httpContentObj, pathSegments);
                 } else {
                   obj[key] = httpContentObj;
                   await applySetter(obj[key], tags);

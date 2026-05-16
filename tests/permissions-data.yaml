@@ -1,0 +1,11 @@
+create:
+  name: financing.create
+  method: POST
+
+update:
+  name: financing.update
+  method: PATCH
+
+delete:
+  name: financing.delete
+  method: DELETE

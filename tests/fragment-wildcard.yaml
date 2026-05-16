@@ -1,0 +1,12 @@
+name: "Test: Wildcard Fragment"
+description: "Testing #/* object value extraction from YAML files"
+
+permissionValues: g::file://./permissions-data.yaml#/*
+firstPermissionName: g::permissionValues[0].name
+secondPermissionMethod: g::permissionValues[1].method
+thirdPermissionName: g::permissionValues[2].name
+
+push::rbac.permissions:
+  - g::file://./permissions-data.yaml#/*
+  - name: financing.audit
+    method: GET
